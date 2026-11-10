@@ -1,0 +1,118 @@
+// ---------------------------------------------------------------
+// STRUCTURA IMOBILULUI SI UTILIZATORI
+// ---------------------------------------------------------------
+
+model Utilizator {
+  id          Int      @id @default(autoincrement())
+  asociatieId Int?     @map("asociatie_id")
+  email       String   @unique
+  parolaHash  String   @map("parola_hash")
+  nume        String
+  prenume     String
+  telefon     String?
+  rol         Rol      @default(PROPRIETAR)
+  activ       Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  asociatie         Asociatie?         @relation(fields: [asociatieId], references: [id], onDelete: SetNull)
+  proprietati       Proprietate[]
+  citiriIntroduse   CitireContor[]     @relation("CitireIntrodusDe")
+  luniAprobate      LunaIntretinere[]  @relation("LunaAprobatDe")
+  platiEfectuate    Plata[]            @relation("PlataPlatitor")
+  platiInregistrate Plata[]            @relation("PlataInregistrator")
+  anunturi          Anunt[]
+  sesizari          Sesizare[]
+  notificari        Notificare[]
+  comenzi           ComandaSimulata[]
+  tranzactiiTokeni  TranzactieTokeni[]
+
+  @@map("utilizatori")
+}
+
+model Asociatie {
+  id                   Int      @id @default(autoincrement())
+  denumire             String
+  cui                  String   @unique
+  adresa               String
+  iban                 String
+  banca                String?
+  ziLimitaCitiri       Int      @default(20) @map("zi_limita_citiri")
+  zileScadenta         Int      @default(20) @map("zile_scadenta")
+  procentPenalizareZi  Decimal  @default(0.2) @map("procent_penalizare_zi") @db.Decimal(5, 3)
+  zileGratiePenalizare Int      @default(30) @map("zile_gratie_penalizare")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  utilizatori         Utilizator[]
+  blocuri             Bloc[]
+  furnizori           Furnizor[]
+  categoriiCheltuieli CategorieCheltuiala[]
+  luni                LunaIntretinere[]
+  fonduri             Fond[]
+  anunturi            Anunt[]
+  abonamente          Abonament[]
+  portofel            PortofelTokeni?
+  comenzi             ComandaSimulata[]
+
+  @@map("asociatii")
+}
+
+model Bloc {
+  id          Int    @id @default(autoincrement())
+  asociatieId Int    @map("asociatie_id")
+  denumire    String
+  adresa      String
+
+  asociatie Asociatie @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  scari     Scara[]
+
+  @@unique([asociatieId, denumire])
+  @@map("blocuri")
+}
+
+model Scara {
+  id       Int    @id @default(autoincrement())
+  blocId   Int    @map("bloc_id")
+  denumire String
+
+  bloc        Bloc         @relation(fields: [blocId], references: [id], onDelete: Cascade)
+  apartamente Apartament[]
+
+  @@unique([blocId, denumire])
+  @@map("scari")
+}
+
+model Apartament {
+  id             Int     @id @default(autoincrement())
+  scaraId        Int     @map("scara_id")
+  numar          String
+  etaj           Int
+  suprafataUtila Decimal @map("suprafata_utila") @db.Decimal(8, 2)
+  cotaParte      Decimal @map("cota_parte") @db.Decimal(7, 4)
+  nrPersoane     Int     @default(1) @map("nr_persoane")
+
+  scara       Scara             @relation(fields: [scaraId], references: [id], onDelete: Cascade)
+  proprietati Proprietate[]
+  contoare    Contor[]
+  fise        FisaIntretinere[]
+  plati       Plata[]
+  sesizari    Sesizare[]
+
+  @@unique([scaraId, numar])
+  @@map("apartamente")
+}
+
+model Proprietate {
+  id              Int       @id @default(autoincrement())
+  apartamentId    Int       @map("apartament_id")
+  utilizatorId    Int       @map("utilizator_id")
+  procentDetinere Decimal   @default(100) @map("procent_detinere") @db.Decimal(5, 2)
+  dataInceput     DateTime  @map("data_inceput") @db.Date
+  dataSfarsit     DateTime? @map("data_sfarsit") @db.Date
+
+  apartament Apartament @relation(fields: [apartamentId], references: [id], onDelete: Cascade)
+  utilizator Utilizator @relation(fields: [utilizatorId], references: [id], onDelete: Restrict)
+
+  @@index([utilizatorId])
+  @@map("proprietati")
+}

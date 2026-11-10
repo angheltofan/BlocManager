@@ -1,0 +1,12 @@
+// LibrarieModele - modelele entitatilor BlockManager, scrise in cod (Code First).
+// Din aceste fisiere Prisma genereaza migrarile (prisma migrate dev) si clientul (prisma generate).
+// Fisierele se citesc impreuna: modelele se pot referi unele la altele din fisiere diferite.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

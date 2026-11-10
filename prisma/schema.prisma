@@ -1,5 +1,5 @@
 // BlockManager - schema bazei de date (PostgreSQL + Prisma)
-// 29 de tabele: monetizare cu abonamente, tokeni si cupoane (8) + domeniul asociatiei (21)
+// 30 de tabele: monetizare cu abonamente, tokeni, cupoane si facturi (9) + domeniul asociatiei (21)
 
 // Prisma 7: adresa bazei de date se afla in prisma.config.ts (DATABASE_URL din .env)
 generator client {
@@ -326,17 +326,17 @@ model LunaIntretinere {
 }
 
 model FacturaFurnizor {
-  id           Int       @id @default(autoincrement())
-  furnizorId   Int       @map("furnizor_id")
-  lunaId       Int       @map("luna_id")
-  categorieId  Int       @map("categorie_id")
+  id           Int      @id @default(autoincrement())
+  furnizorId   Int      @map("furnizor_id")
+  lunaId       Int      @map("luna_id")
+  categorieId  Int      @map("categorie_id")
   numar        String
-  dataEmitere  DateTime  @map("data_emitere") @db.Date
-  dataScadenta DateTime  @map("data_scadenta") @db.Date
-  suma         Decimal   @db.Decimal(12, 2)
-  cantitate    Decimal?  @db.Decimal(12, 3)
-  platita      Boolean   @default(false)
-  fisierUrl    String?   @map("fisier_url")
+  dataEmitere  DateTime @map("data_emitere") @db.Date
+  dataScadenta DateTime @map("data_scadenta") @db.Date
+  suma         Decimal  @db.Decimal(12, 2)
+  cantitate    Decimal? @db.Decimal(12, 3)
+  platita      Boolean  @default(false)
+  fisierUrl    String?  @map("fisier_url")
 
   furnizor  Furnizor            @relation(fields: [furnizorId], references: [id], onDelete: Restrict)
   luna      LunaIntretinere     @relation(fields: [lunaId], references: [id], onDelete: Restrict)
@@ -402,15 +402,15 @@ model Fond {
 // ---------------------------------------------------------------
 
 model Plata {
-  id               Int         @id @default(autoincrement())
-  apartamentId     Int         @map("apartament_id")
-  platitorId       Int?        @map("platitor_id")
-  inregistratDeId  Int?        @map("inregistrat_de_id")
-  suma             Decimal     @db.Decimal(12, 2)
-  dataPlata        DateTime    @default(now()) @map("data_plata")
-  metoda           MetodaPlata
-  numarChitanta    String      @unique @map("numar_chitanta")
-  status           StatusPlata @default(INREGISTRATA)
+  id              Int         @id @default(autoincrement())
+  apartamentId    Int         @map("apartament_id")
+  platitorId      Int?        @map("platitor_id")
+  inregistratDeId Int?        @map("inregistrat_de_id")
+  suma            Decimal     @db.Decimal(12, 2)
+  dataPlata       DateTime    @default(now()) @map("data_plata")
+  metoda          MetodaPlata
+  numarChitanta   String      @unique @map("numar_chitanta")
+  status          StatusPlata @default(INREGISTRATA)
 
   apartament    Apartament     @relation(fields: [apartamentId], references: [id], onDelete: Restrict)
   platitor      Utilizator?    @relation("PlataPlatitor", fields: [platitorId], references: [id], onDelete: SetNull)
@@ -503,16 +503,18 @@ model Notificare {
 // ---------------------------------------------------------------
 
 model Plan {
-  id             Int     @id @default(autoincrement())
-  cod            String  @unique // FREE, PRO, MAX
+  id             Int      @id @default(autoincrement())
+  cod            String   @unique // FREE, PRO, MAX
   denumire       String
-  pretLunar      Decimal @map("pret_lunar") @db.Decimal(10, 2)
-  tokeniLunari   Int     @map("tokeni_lunari")
-  maxApartamente Int?    @map("max_apartamente") // null = nelimitat
-  maxBlocuri     Int?    @map("max_blocuri") // null = nelimitat
-  raportAnual    Boolean @default(false) @map("raport_anual")
-  activ          Boolean @default(true)
-  descriere      String? @db.VarChar(200) // Laborator 3, Ex. 3: coloana adaugata in baza de date
+  pretLunar      Decimal  @map("pret_lunar") @db.Decimal(10, 2)
+  tokeniLunari   Int      @map("tokeni_lunari")
+  maxApartamente Int?     @map("max_apartamente") // null = nelimitat
+  maxBlocuri     Int?     @map("max_blocuri") // null = nelimitat
+  raportAnual    Boolean  @default(false) @map("raport_anual")
+  activ          Boolean  @default(true)
+  descriere      String?  @db.VarChar(200) // Laborator 3, Ex. 3: coloana adaugata in baza de date
+  pretAnual      Decimal? @map("pret_anual") @db.Decimal(10, 2) // Laborator 4: null = fara plata anuala
+  recomandat     Boolean  @default(false) // Laborator 4: planul evidentiat pe pagina de preturi
 
   abonamente           Abonament[]       @relation("AbonamentPlan")
   abonamenteProgramate Abonament[]       @relation("AbonamentPlanUrmator")
@@ -621,10 +623,28 @@ model ComandaSimulata {
   plan       Plan?              @relation(fields: [planId], references: [id], onDelete: SetNull)
   pachet     PachetTokeni?      @relation(fields: [pachetId], references: [id], onDelete: SetNull)
   tranzactii TranzactieTokeni[]
+  factura    FacturaSimulata?
 
   @@index([asociatieId, createdAt])
   @@index([status])
   @@map("comenzi_simulate")
+}
+
+// Laborator 4: model nou
+// Factura simulata emisa pentru o comanda achitata (relatie 1:1 cu comenzi_simulate)
+model FacturaSimulata {
+  id          Int      @id @default(autoincrement())
+  comandaId   Int      @unique @map("comanda_id")
+  numar       String   @unique @db.VarChar(20) // ex. BM-2026-000001
+  dataEmitere DateTime @map("data_emitere") @db.Date
+  subtotal    Decimal  @db.Decimal(10, 2)
+  tva         Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  comanda ComandaSimulata @relation(fields: [comandaId], references: [id], onDelete: Cascade)
+
+  @@map("facturi_simulate")
 }
 
 // Laborator 3, Ex. 4: tabel nou adaugat in baza de date
@@ -632,7 +652,7 @@ model ComandaSimulata {
 model CuponReducere {
   id              Int      @id @default(autoincrement())
   cod             String   @unique @db.VarChar(30)
-  procentReducere Int      @map("procent_reducere")
+  procentReducere Decimal  @map("procent_reducere") @db.Decimal(5, 2) // Laborator 4: Int -> Decimal
   planId          Int?     @map("plan_id")
   valabilPana     DateTime @map("valabil_pana") @db.Date
   utilizariMaxime Int      @default(1) @map("utilizari_maxime")

@@ -1,0 +1,50 @@
+// ---------------------------------------------------------------
+// COMUNICARE
+// ---------------------------------------------------------------
+
+model Anunt {
+  id            Int      @id @default(autoincrement())
+  asociatieId   Int      @map("asociatie_id")
+  autorId       Int      @map("autor_id")
+  titlu         String
+  continut      String   @db.Text
+  important     Boolean  @default(false)
+  dataPublicare DateTime @default(now()) @map("data_publicare")
+
+  asociatie Asociatie  @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  autor     Utilizator @relation(fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@map("anunturi")
+}
+
+model Sesizare {
+  id            Int            @id @default(autoincrement())
+  apartamentId  Int            @map("apartament_id")
+  autorId       Int            @map("autor_id")
+  titlu         String
+  descriere     String         @db.Text
+  status        StatusSesizare @default(NOUA)
+  raspuns       String?        @db.Text
+  dataCreare    DateTime       @default(now()) @map("data_creare")
+  dataRezolvare DateTime?      @map("data_rezolvare")
+
+  apartament Apartament @relation(fields: [apartamentId], references: [id], onDelete: Cascade)
+  autor      Utilizator @relation(fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@map("sesizari")
+}
+
+model Notificare {
+  id           Int           @id @default(autoincrement())
+  utilizatorId Int           @map("utilizator_id")
+  tip          TipNotificare
+  mesaj        String
+  citita       Boolean       @default(false)
+  dataCreare   DateTime      @default(now()) @map("data_creare")
+
+  utilizator Utilizator @relation(fields: [utilizatorId], references: [id], onDelete: Cascade)
+
+  @@index([utilizatorId, citita])
+  @@map("notificari")
+}

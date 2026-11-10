@@ -1,0 +1,164 @@
+// ---------------------------------------------------------------
+// MONETIZARE: PLANURI, ABONAMENTE SI TOKENI (SIMULAT)
+// ---------------------------------------------------------------
+
+model Plan {
+  id             Int      @id @default(autoincrement())
+  cod            String   @unique // FREE, PRO, MAX
+  denumire       String
+  pretLunar      Decimal  @map("pret_lunar") @db.Decimal(10, 2)
+  tokeniLunari   Int      @map("tokeni_lunari")
+  maxApartamente Int?     @map("max_apartamente") // null = nelimitat
+  maxBlocuri     Int?     @map("max_blocuri") // null = nelimitat
+  raportAnual    Boolean  @default(false) @map("raport_anual")
+  activ          Boolean  @default(true)
+  descriere      String?  @db.VarChar(200)
+  pretAnual      Decimal? @map("pret_anual") @db.Decimal(10, 2) // null = fara plata anuala
+  recomandat     Boolean  @default(false) // planul evidentiat pe pagina de preturi
+
+  abonamente           Abonament[]       @relation("AbonamentPlan")
+  abonamenteProgramate Abonament[]       @relation("AbonamentPlanUrmator")
+  comenzi              ComandaSimulata[]
+  cupoane              CuponReducere[]
+
+  @@map("planuri")
+}
+
+model ActiuneTaxabila {
+  id         Int        @id @default(autoincrement())
+  cod        CodActiune @unique
+  denumire   String
+  costTokeni Int        @map("cost_tokeni")
+
+  tranzactii TranzactieTokeni[]
+
+  @@map("actiuni_taxabile")
+}
+
+model Abonament {
+  id                Int             @id @default(autoincrement())
+  asociatieId       Int             @map("asociatie_id")
+  planId            Int             @map("plan_id")
+  planUrmatorId     Int?            @map("plan_urmator_id") // downgrade programat la final de perioada
+  inceputPerioada   DateTime        @map("inceput_perioada")
+  sfarsitPerioada   DateTime        @map("sfarsit_perioada")
+  status            StatusAbonament @default(ACTIV)
+  reinnoireAutomata Boolean         @default(true) @map("reinnoire_automata")
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  asociatie   Asociatie         @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  plan        Plan              @relation("AbonamentPlan", fields: [planId], references: [id], onDelete: Restrict)
+  planUrmator Plan?             @relation("AbonamentPlanUrmator", fields: [planUrmatorId], references: [id], onDelete: SetNull)
+  comenzi     ComandaSimulata[]
+
+  @@index([asociatieId, status])
+  @@index([status, sfarsitPerioada])
+  @@map("abonamente")
+}
+
+model PortofelTokeni {
+  id             Int       @id @default(autoincrement())
+  asociatieId    Int       @unique @map("asociatie_id")
+  tokeniPlan     Int       @default(0) @map("tokeni_plan")
+  tokeniExtra    Int       @default(0) @map("tokeni_extra")
+  ultimaResetare DateTime? @map("ultima_resetare")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  asociatie  Asociatie          @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  tranzactii TranzactieTokeni[]
+
+  @@map("portofele_tokeni")
+}
+
+model TranzactieTokeni {
+  id           Int           @id @default(autoincrement())
+  portofelId   Int           @map("portofel_id")
+  tip          TipTranzactie
+  cantitate    Int // pozitiv = intrare, negativ = iesire
+  soldDupa     Int           @map("sold_dupa")
+  actiuneId    Int?          @map("actiune_id")
+  comandaId    Int?          @map("comanda_id")
+  utilizatorId Int?          @map("utilizator_id")
+  descriere    String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  portofel   PortofelTokeni   @relation(fields: [portofelId], references: [id], onDelete: Cascade)
+  actiune    ActiuneTaxabila? @relation(fields: [actiuneId], references: [id], onDelete: SetNull)
+  comanda    ComandaSimulata? @relation(fields: [comandaId], references: [id], onDelete: SetNull)
+  utilizator Utilizator?      @relation(fields: [utilizatorId], references: [id], onDelete: SetNull)
+
+  @@index([portofelId, createdAt])
+  @@map("tranzactii_tokeni")
+}
+
+model PachetTokeni {
+  id       Int     @id @default(autoincrement())
+  denumire String
+  tokeni   Int
+  pret     Decimal @db.Decimal(10, 2)
+  activ    Boolean @default(true)
+
+  comenzi ComandaSimulata[]
+
+  @@map("pachete_tokeni")
+}
+
+model ComandaSimulata {
+  id           Int           @id @default(autoincrement())
+  asociatieId  Int           @map("asociatie_id")
+  utilizatorId Int?          @map("utilizator_id") // null = emisa automat de planificator
+  abonamentId  Int?          @map("abonament_id")
+  tip          TipComanda
+  planId       Int?          @map("plan_id")
+  pachetId     Int?          @map("pachet_id")
+  suma         Decimal       @db.Decimal(10, 2)
+  status       StatusComanda @default(IN_ASTEPTARE)
+  referinta    String        @unique // ex. SIM-2026-000123
+  achitataLa   DateTime?     @map("achitata_la")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  asociatie  Asociatie          @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  utilizator Utilizator?        @relation(fields: [utilizatorId], references: [id], onDelete: SetNull)
+  abonament  Abonament?         @relation(fields: [abonamentId], references: [id], onDelete: SetNull)
+  plan       Plan?              @relation(fields: [planId], references: [id], onDelete: SetNull)
+  pachet     PachetTokeni?      @relation(fields: [pachetId], references: [id], onDelete: SetNull)
+  tranzactii TranzactieTokeni[]
+  factura    FacturaSimulata?
+
+  @@index([asociatieId, createdAt])
+  @@index([status])
+  @@map("comenzi_simulate")
+}
+
+// Cod de reducere pentru plata simulata a unui abonament (plan_id NULL = valabil pentru orice plan platit)
+model CuponReducere {
+  id              Int      @id @default(autoincrement())
+  cod             String   @unique @db.VarChar(30)
+  procentReducere Decimal  @map("procent_reducere") @db.Decimal(5, 2)
+  planId          Int?     @map("plan_id")
+  valabilPana     DateTime @map("valabil_pana") @db.Date
+  utilizariMaxime Int      @default(1) @map("utilizari_maxime")
+  utilizari       Int      @default(0)
+  activ           Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  plan Plan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@map("cupoane_reducere")
+}
+
+// Factura simulata emisa pentru o comanda achitata (relatie 1:1 cu comenzi_simulate)
+model FacturaSimulata {
+  id          Int      @id @default(autoincrement())
+  comandaId   Int      @unique @map("comanda_id")
+  numar       String   @unique @db.VarChar(20) // ex. BM-2026-000001
+  dataEmitere DateTime @map("data_emitere") @db.Date
+  subtotal    Decimal  @db.Decimal(10, 2)
+  tva         Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  comanda ComandaSimulata @relation(fields: [comandaId], references: [id], onDelete: Cascade)
+
+  @@map("facturi_simulate")
+}

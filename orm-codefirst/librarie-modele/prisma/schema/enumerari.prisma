@@ -1,0 +1,102 @@
+// ---------------------------------------------------------------
+// ENUMERARI
+// ---------------------------------------------------------------
+
+enum Rol {
+  ADMIN
+  PRESEDINTE
+  PROPRIETAR
+}
+
+enum SursaCitire {
+  PROPRIETAR
+  ADMIN
+  ESTIMAT
+}
+
+enum ModRepartizare {
+  COTA_PARTE
+  PERSOANE
+  CONSUM
+  APARTAMENT
+  SUPRAFATA
+}
+
+enum StatusLuna {
+  DESCHISA
+  CALCULATA
+  APROBATA
+  PUBLICATA
+  INCHISA
+}
+
+enum StatusFisa {
+  NEPLATITA
+  PARTIAL_PLATITA
+  PLATITA
+}
+
+enum MetodaPlata {
+  CASIERIE
+  TRANSFER
+  CARD
+}
+
+enum StatusPlata {
+  INREGISTRATA
+  ANULATA
+}
+
+enum TipFond {
+  RULMENT
+  REPARATII
+}
+
+enum StatusSesizare {
+  NOUA
+  IN_LUCRU
+  REZOLVATA
+}
+
+enum TipNotificare {
+  INTRETINERE
+  PLATA
+  SESIZARE
+  ABONAMENT
+  TOKENI
+  SISTEM
+}
+
+enum CodActiune {
+  CALCUL
+  RECALCUL
+  NOTIFICARI
+  EXPORT_PDF
+  RAPORT
+}
+
+enum StatusAbonament {
+  ACTIV
+  SUSPENDAT // Pro/Max neplatit: planul nu poate fi folosit pana la plata
+  ANULAT
+  EXPIRAT
+}
+
+enum TipTranzactie {
+  ALOCARE
+  CONSUM
+  CUMPARARE
+  EXPIRARE
+  BONUS
+}
+
+enum TipComanda {
+  ABONAMENT
+  PACHET
+}
+
+enum StatusComanda {
+  IN_ASTEPTARE
+  ACHITATA
+  ANULATA
+}

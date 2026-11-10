@@ -34,7 +34,7 @@ npx prisma generate    # regenerează clientul (rulează automat la npm install)
 ## Structura
 
 ```
-prisma/schema.prisma        modelul bazei de date (29 de tabele, 15 enumerări)
+prisma/schema.prisma        modelul bazei de date (30 de tabele, 15 enumerări)
 prisma/migrations/          migrările; cele aplicate NU se modifică
 prisma/seed.ts              datele de test
 prisma.config.ts            DATABASE_URL, calea migrărilor, comanda de seed
@@ -42,6 +42,7 @@ src/lib/prisma.ts           singura instanță de PrismaClient
 src/generated/prisma/       clientul generat (în .gitignore, nu se editează)
 src/app/                    paginile (App Router)
 orm-dbfirst/                Laborator 3: proiect separat Database First (npm workspaces), vezi mai jos
+orm-codefirst/              Laborator 4: proiect separat Code First (npm workspaces), vezi mai jos
 laboratoare/                livrabilele predate la fiecare laborator (PDF-uri, backup-uri); nu fac parte din aplicație
 ```
 
@@ -55,6 +56,17 @@ Proiect separat de aplicația web, cu `package.json` și `node_modules` proprii.
 - `sql/`: scripturile cu care s-a modificat baza de date la Laboratorul 3 (coloana `planuri.descriere`, tabelul `cupoane_reducere`). Aceleași schimbări există în aplicație ca migrări, marcate aplicate cu `prisma migrate resolve --applied`.
 
 Aplicația web rămâne Schema First: modificările ei de bază de date se fac prin migrări (`prisma migrate dev`). După o migrare nouă, `orm-dbfirst` se actualizează cu `npm run db:pull` și `npm run generate`, rulate din `orm-dbfirst`.
+
+### orm-codefirst (Laborator 4, Code First)
+
+Proiect separat, cu `package.json` și `node_modules` proprii, exclus din `tsconfig.json` și din ESLint-ul aplicației. Folosește o bază de date separată, `blockmanager_codefirst`, creată doar din migrări.
+
+- `librarie-modele/`: modelele (schema Prisma împărțită pe domenii, în `prisma/schema/*.prisma`) și clientul generat în `src/generated/prisma` (nu se editează).
+- `repository-codefirst/`: `BlockManagerContext` (clasă derivată din `PrismaClient`, cu contor de interogări și setarea `INCARCARE_RELATII`), `prisma.config.ts`, migrările (`init`, `date_test`, `modificari_planuri_cupoane_facturi`) și `prisma/seed.ts` (doar `planuri` și `cupoane_reducere`).
+- `nivel-acces-date/`: `PlanuriAccessor` (inclusiv eager/lazy pentru cupoane), `AbonamenteAccessor`, `CupoaneAccessor`.
+- `test-console-codefirst/`: aplicația consolă (`npm start` din `orm-codefirst`).
+
+Setarea `INCARCARE_RELATII` din `.env` (`eager` sau `lazy`) alege cum se încarcă relația Plan → CuponReducere. O modificare de model se face în `librarie-modele/prisma/schema`, apoi `npm run migrate:dev -- --name <nume>` din `orm-codefirst`.
 
 Folderul `Claude outputs/` este creat de aplicația Claude pentru fișierele trimise din chat. Nu face parte din proiect: nu-l modifica și nu te baza pe el.
 
@@ -116,12 +128,14 @@ Valorile stau în tabelul `planuri`. Nu le scrie direct în cod: citește-le din
    4. scade întâi din `tokeni_plan`, apoi din `tokeni_extra`, cu o actualizare condiționată, ca două cereri simultane să nu consume același sold;
    5. scrie `CONSUM` cu `cantitate = -cost` și `sold_dupa`;
    6. execută acțiunea. Dacă acțiunea eșuează, totul se anulează.
-8. **Cupoanele de reducere** (`cupoane_reducere`) reduc prețul unei comenzi simulate de abonament cu `procent_reducere`. Un cupon e valabil doar dacă e `activ`, nu a trecut de `valabil_pana`, `utilizari < utilizari_maxime` și, când are `plan_id`, doar pentru acel plan. Încă nu sunt folosite la plată: tabelul există din Laboratorul 3.
-9. **Pachetele de tokeni** (`pachete_tokeni`: 100 tokeni / 19 lei, 300 / 49, 1000 / 129) se cumpără tot prin comandă simulată. Adaugă la `tokeni_extra`, nu expiră și se consumă după tokenii planului.
-10. **Upgrade** (de exemplu Free → Pro): comandă cu prețul noului plan. După plată, abonamentul vechi devine `EXPIRAT`, se creează unul nou `ACTIV` pentru o lună, tokenii de plan vechi expiră și se alocă cei ai noului plan.
-11. **Downgrade**: se salvează `plan_urmator_id`, fără plată acum. Jobul zilnic aplică planul la finalul perioadei. Dacă asociația depășește limitele noului plan, datele rămân, dar nu se mai pot adăuga apartamente sau blocuri.
-12. **Limitele planului** (`max_apartamente`, `max_blocuri`) se verifică la fiecare adăugare de apartament sau bloc.
-13. **Jurnalul este sursa de adevăr.** Orice schimbare a soldului (`ALOCARE`, `CONSUM`, `CUMPARARE`, `EXPIRARE`, `BONUS`) scrie un rând în `tranzactii_tokeni`. Nu actualiza niciodată `portofele_tokeni` fără rândul corespunzător. Invariant: soldul din portofel = ultimul `sold_dupa` = suma câmpului `cantitate`.
+8. **Cupoanele de reducere** (`cupoane_reducere`) reduc prețul unei comenzi simulate de abonament cu `procent_reducere` (zecimal, de exemplu 7,50%). Un cupon e valabil doar dacă e `activ`, nu a trecut de `valabil_pana`, `utilizari < utilizari_maxime` și, când are `plan_id`, doar pentru acel plan. Încă nu sunt folosite la plată: tabelul există din Laboratorul 3.
+9. **Facturile simulate** (`facturi_simulate`): fiecare comandă `ACHITATA` are o factură (relație 1:1), cu numărul `BM-AAAA-NNNNNN`, data plății, subtotal, TVA 21% și total; suma comenzii include TVA. La plata simulată, factura se creează în aceeași tranzacție.
+10. **Planurile** au și `pret_anual` (null = fără plată anuală) și `recomandat` (planul evidențiat pe pagina de prețuri).
+11. **Pachetele de tokeni** (`pachete_tokeni`: 100 tokeni / 19 lei, 300 / 49, 1000 / 129) se cumpără tot prin comandă simulată. Adaugă la `tokeni_extra`, nu expiră și se consumă după tokenii planului.
+12. **Upgrade** (de exemplu Free → Pro): comandă cu prețul noului plan. După plată, abonamentul vechi devine `EXPIRAT`, se creează unul nou `ACTIV` pentru o lună, tokenii de plan vechi expiră și se alocă cei ai noului plan.
+13. **Downgrade**: se salvează `plan_urmator_id`, fără plată acum. Jobul zilnic aplică planul la finalul perioadei. Dacă asociația depășește limitele noului plan, datele rămân, dar nu se mai pot adăuga apartamente sau blocuri.
+14. **Limitele planului** (`max_apartamente`, `max_blocuri`) se verifică la fiecare adăugare de apartament sau bloc.
+15. **Jurnalul este sursa de adevăr.** Orice schimbare a soldului (`ALOCARE`, `CONSUM`, `CUMPARARE`, `EXPIRARE`, `BONUS`) scrie un rând în `tranzactii_tokeni`. Nu actualiza niciodată `portofele_tokeni` fără rândul corespunzător. Invariant: soldul din portofel = ultimul `sold_dupa` = suma câmpului `cantitate`.
 
 Pune toată logica de tokeni și abonament într-un singur modul de servicii (de exemplu `src/lib/monetizare/`), apelat de toate acțiunile taxate. Nu o copia în pagini.
 
@@ -154,7 +168,8 @@ Pune toată logica de tokeni și abonament într-un singur modul de servicii (de
 
 **Gata:**
 - Laboratorul 2: schema completă, migrarea inițială, seed cu 3 asociații (Florilor 12 pe Pro activ, Parcul Verde pe Free, Mărăști 7 pe Max suspendat până la plată), pagina de test `/`;
-- Laboratorul 3: proiectul `orm-dbfirst` (modele generate din baza de date, clase Accessor, consolă de test), coloana `planuri.descriere` și tabelul `cupoane_reducere`, afișate pe pagina `/`.
+- Laboratorul 3: proiectul `orm-dbfirst` (modele generate din baza de date, clase Accessor, consolă de test), coloana `planuri.descriere` și tabelul `cupoane_reducere`, afișate pe pagina `/`;
+- Laboratorul 4: proiectul `orm-codefirst` (baza de date creată din modele prin migrări, seed, Accessori, eager/lazy loading) și, în aplicație, `planuri.pret_anual`, `planuri.recomandat`, procentul zecimal al cupoanelor și tabelul `facturi_simulate`, afișate pe pagina `/`.
 
 **Următorii pași:**
 1. autentificarea cu roluri;

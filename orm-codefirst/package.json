@@ -1,0 +1,26 @@
+{
+  "name": "demo-orm-codefirst",
+  "private": true,
+  "description": "BlockManager - Laborator 4: ORM Code First (Prisma migrate)",
+  "type": "module",
+  "workspaces": [
+    "librarie-modele",
+    "repository-codefirst",
+    "nivel-acces-date",
+    "test-console-codefirst"
+  ],
+  "scripts": {
+    "generate": "npm run generate -w repository-codefirst",
+    "migrate:dev": "npm run migrate:dev -w repository-codefirst --",
+    "migrate:status": "npm run migrate:status -w repository-codefirst",
+    "db:seed": "npm run db:seed -w repository-codefirst",
+    "start": "npm start -w test-console-codefirst",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pg": "^8.15.6",
+    "tsx": "4.23.15",
+    "typescript": "^5"
+  }
+}

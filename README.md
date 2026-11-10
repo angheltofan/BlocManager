@@ -51,7 +51,7 @@ Pagina afișează versiunea serverului PostgreSQL, numărul de înregistrări, p
 
 ```
 prisma/
-  schema.prisma          modelul bazei de date (29 de tabele, 15 enumerări)
+  schema.prisma          modelul bazei de date (30 de tabele, 15 enumerări)
   migrations/            migrarea inițială (SQL generat de Prisma)
   seed.ts                datele de test
 prisma.config.ts         configurarea Prisma (adresa bazei de date, seed)
@@ -71,6 +71,12 @@ src/app/page.tsx         pagina de test
 ## Laborator 3: Database First
 
 Folderul `orm-dbfirst` conține proiectul separat în care modelele sunt generate din baza de date (`prisma db pull`), plus clasele Accessor și o aplicație consolă de test. Detaliile sunt în `orm-dbfirst/README.md`.
+
+## Laborator 4: Code First
+
+Folderul `orm-codefirst` conține proiectul separat în care baza de date `blockmanager_codefirst` este creată din modele, prin migrări. Detaliile sunt în `orm-codefirst/README.md`.
+
+Modificările de model din Laboratorul 4 există și în aplicația web, prin migrarea `20261110160100_modificari_planuri_cupoane_facturi`: prețul anual și eticheta „Recomandat” la planuri, procentul zecimal al cupoanelor și tabelul `facturi_simulate`, toate afișate pe pagina `/`.
 
 ## Date de test
 

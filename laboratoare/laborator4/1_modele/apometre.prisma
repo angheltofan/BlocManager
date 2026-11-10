@@ -1,0 +1,37 @@
+// ---------------------------------------------------------------
+// CONSUMURI
+// ---------------------------------------------------------------
+
+// Apometru: singurul consum citit individual (apa)
+model Contor {
+  id                        Int       @id @default(autoincrement())
+  apartamentId              Int       @map("apartament_id")
+  serie                     String
+  dataVerificareMetrologica DateTime? @map("data_verificare_metrologica") @db.Date
+  activ                     Boolean   @default(true)
+
+  apartament Apartament     @relation(fields: [apartamentId], references: [id], onDelete: Cascade)
+  citiri     CitireContor[]
+
+  @@unique([apartamentId, serie])
+  @@map("contoare")
+}
+
+model CitireContor {
+  id           Int         @id @default(autoincrement())
+  contorId     Int         @map("contor_id")
+  lunaId       Int         @map("luna_id")
+  introdusDeId Int?        @map("introdus_de_id")
+  index        Decimal     @db.Decimal(12, 3)
+  consum       Decimal     @db.Decimal(12, 3)
+  dataCitire   DateTime    @default(now()) @map("data_citire")
+  sursa        SursaCitire @default(PROPRIETAR)
+  validata     Boolean     @default(false)
+
+  contor     Contor          @relation(fields: [contorId], references: [id], onDelete: Cascade)
+  luna       LunaIntretinere @relation(fields: [lunaId], references: [id], onDelete: Restrict)
+  introdusDe Utilizator?     @relation("CitireIntrodusDe", fields: [introdusDeId], references: [id], onDelete: SetNull)
+
+  @@unique([contorId, lunaId])
+  @@map("citiri_contoare")
+}

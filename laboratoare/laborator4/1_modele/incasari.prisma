@@ -1,0 +1,49 @@
+// ---------------------------------------------------------------
+// INCASARI
+// ---------------------------------------------------------------
+
+model Plata {
+  id              Int         @id @default(autoincrement())
+  apartamentId    Int         @map("apartament_id")
+  platitorId      Int?        @map("platitor_id")
+  inregistratDeId Int?        @map("inregistrat_de_id")
+  suma            Decimal     @db.Decimal(12, 2)
+  dataPlata       DateTime    @default(now()) @map("data_plata")
+  metoda          MetodaPlata
+  numarChitanta   String      @unique @map("numar_chitanta")
+  status          StatusPlata @default(INREGISTRATA)
+
+  apartament    Apartament     @relation(fields: [apartamentId], references: [id], onDelete: Restrict)
+  platitor      Utilizator?    @relation("PlataPlatitor", fields: [platitorId], references: [id], onDelete: SetNull)
+  inregistratDe Utilizator?    @relation("PlataInregistrator", fields: [inregistratDeId], references: [id], onDelete: SetNull)
+  alocari       AlocarePlata[]
+
+  @@index([apartamentId, dataPlata])
+  @@map("plati")
+}
+
+model AlocarePlata {
+  id      Int     @id @default(autoincrement())
+  plataId Int     @map("plata_id")
+  fisaId  Int     @map("fisa_id")
+  suma    Decimal @db.Decimal(12, 2)
+
+  plata Plata           @relation(fields: [plataId], references: [id], onDelete: Cascade)
+  fisa  FisaIntretinere @relation(fields: [fisaId], references: [id], onDelete: Restrict)
+
+  @@unique([plataId, fisaId])
+  @@map("alocari_plati")
+}
+
+model Penalizare {
+  id             Int      @id @default(autoincrement())
+  fisaId         Int      @map("fisa_id")
+  dataCalcul     DateTime @map("data_calcul") @db.Date
+  zileIntarziere Int      @map("zile_intarziere")
+  suma           Decimal  @db.Decimal(10, 2)
+
+  fisa FisaIntretinere @relation(fields: [fisaId], references: [id], onDelete: Cascade)
+
+  @@unique([fisaId, dataCalcul])
+  @@map("penalizari")
+}

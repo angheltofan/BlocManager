@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     // cod generat de Prisma si proiectele separate pentru laboratoare
     "src/generated/**",
     "orm-dbfirst/**",
+    "orm-codefirst/**",
     "laboratoare/**",
   ]),
 ]);

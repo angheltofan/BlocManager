@@ -1,0 +1,14 @@
+{
+  "name": "nivel-acces-date",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NivelAccesDate: clasele Accessor (din NivelAccesDate_DBFirst, adaptate la modelele Code First)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "librarie-modele": "1.0.0",
+    "repository-codefirst": "1.0.0"
+  }
+}

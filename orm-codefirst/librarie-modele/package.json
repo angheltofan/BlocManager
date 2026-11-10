@@ -1,0 +1,13 @@
+{
+  "name": "librarie-modele",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LibrarieModele: modelele entitatilor scrise in cod (prisma/schema) si tipurile generate din ele",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "7.10.1"
+  }
+}

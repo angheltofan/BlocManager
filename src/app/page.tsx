@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Aplicatia de test (Laborator 2, Exercitiul 3):
+ * Aplicatia de test (Laborator 2, Exercitiul 3; actualizata la Laboratoarele 3 si 4):
  * se conecteaza la baza de date PostgreSQL prin Prisma si afiseaza date de test din tabele.
  *
  * Antetul paginii este static; sectiunea cu date ruleaza la fiecare cerere (connection()),
@@ -17,7 +17,7 @@ export default function Page() {
         <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Conexiunea la baza de date</h1>
         <p className="mt-2 max-w-2xl text-muted">
           Pagina citește direct din PostgreSQL, prin Prisma, planurile de abonament, cupoanele de reducere, situația
-          fiecărei asociații și ultimele mișcări de tokeni.
+          fiecărei asociații, facturile simulate și ultimele mișcări de tokeni.
         </p>
       </header>
 
@@ -34,7 +34,7 @@ async function citesteDate() {
     const [info] = await prisma.$queryRaw<{ versiune: string; baza: string; utilizator: string }[]>`
       SELECT version() AS versiune, current_database() AS baza, current_user AS utilizator`;
 
-    const [planuri, cupoane, asociatii, tranzactii, numaratori] = await Promise.all([
+    const [planuri, cupoane, asociatii, facturi, tranzactii, numaratori] = await Promise.all([
       prisma.plan.findMany({ orderBy: { pretLunar: "asc" } }),
       prisma.cuponReducere.findMany({ orderBy: [{ activ: "desc" }, { valabilPana: "asc" }], include: { plan: true } }),
       prisma.asociatie.findMany({
@@ -45,6 +45,10 @@ async function citesteDate() {
           comenzi: { where: { status: "IN_ASTEPTARE" } },
           _count: { select: { utilizatori: true, blocuri: true } },
         },
+      }),
+      prisma.facturaSimulata.findMany({
+        orderBy: { numar: "desc" },
+        include: { comanda: { include: { asociatie: true, plan: true, pachet: true } } },
       }),
       prisma.tranzactieTokeni.findMany({
         take: 10,
@@ -61,7 +65,7 @@ async function citesteDate() {
       ]),
     ]);
 
-    return { ok: true as const, info, planuri, cupoane, asociatii, tranzactii, numaratori };
+    return { ok: true as const, info, planuri, cupoane, asociatii, facturi, tranzactii, numaratori };
   } catch (eroare) {
     return { ok: false as const, mesaj: eroare instanceof Error ? eroare.message : String(eroare) };
   }
@@ -85,7 +89,7 @@ async function DateDinBaza() {
     );
   }
 
-  const { info, planuri, cupoane, asociatii, tranzactii, numaratori } = date;
+  const { info, planuri, cupoane, asociatii, facturi, tranzactii, numaratori } = date;
   const acum = new Date();
   const [nrUtilizatori, nrApartamente, nrAbonamente, nrTranzactii, nrComenzi, nrFise] = numaratori;
 
@@ -107,15 +111,32 @@ async function DateDinBaza() {
 
       <Sectiune titlu="Planuri de abonament" sursa="planuri">
         <Tabel
-          antet={["Cod", "Plan", "Preț / lună", "Tokeni / lună", "Max apartamente", "Max blocuri", "Raport anual"]}
-          numerice={[2, 3, 4, 5]}
+          antet={["Cod", "Plan", "Preț / lună", "Preț / an", "Tokeni / lună", "Max apartamente", "Max blocuri", "Raport anual"]}
+          numerice={[2, 3, 4, 5, 6]}
           randuri={planuri.map((p) => [
             <span key="c" className="font-mono text-xs">{p.cod}</span>,
             <div key="p" className="max-w-xs">
-              <p className="font-medium">{p.denumire}</p>
+              <p className="font-medium">
+                {p.denumire}
+                {p.recomandat && (
+                  <span className="ml-2 inline-block rounded bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">
+                    Recomandat
+                  </span>
+                )}
+              </p>
               {p.descriere && <p className="mt-0.5 text-xs text-muted">{p.descriere}</p>}
             </div>,
             `${formatLei(p.pretLunar.toString())} lei`,
+            p.pretAnual ? (
+              <div key="an">
+                <p>{formatLei(p.pretAnual.toString())} lei</p>
+                <p className="text-xs text-accent">
+                  economie {formatLei(p.pretLunar.mul(12).sub(p.pretAnual).toString())} lei
+                </p>
+              </div>
+            ) : (
+              "—"
+            ),
             formatNumar(p.tokeniLunari),
             p.maxApartamente ?? "nelimitat",
             p.maxBlocuri ?? "nelimitat",
@@ -130,7 +151,7 @@ async function DateDinBaza() {
           numerice={[1, 4]}
           randuri={cupoane.map((c) => [
             <span key="c" className="font-mono text-xs">{c.cod}</span>,
-            `${c.procentReducere}%`,
+            `${formatProcent(c.procentReducere.toString())}%`,
             c.plan ? `planul ${c.plan.denumire}` : "orice plan plătit",
             formatData(c.valabilPana),
             `${c.utilizari} / ${c.utilizariMaxime}`,
@@ -168,6 +189,26 @@ async function DateDinBaza() {
               a._count.utilizatori,
             ];
           })}
+        />
+      </Sectiune>
+
+      <Sectiune titlu="Facturi simulate" sursa="facturi_simulate, comenzi_simulate">
+        <Tabel
+          antet={["Număr", "Data", "Asociație", "Pentru", "Fără TVA", "TVA", "Total"]}
+          numerice={[4, 5, 6]}
+          randuri={facturi.map((f) => [
+            <span key="n" className="font-mono text-xs">{f.numar}</span>,
+            formatData(f.dataEmitere),
+            f.comanda.asociatie.denumire,
+            f.comanda.plan
+              ? `Abonament ${f.comanda.plan.denumire}`
+              : f.comanda.pachet
+                ? f.comanda.pachet.denumire
+                : f.comanda.tip,
+            `${formatLei(f.subtotal.toString())} lei`,
+            `${formatLei(f.tva.toString())} lei`,
+            <span key="t" className="font-medium">{formatLei(f.total.toString())} lei</span>,
+          ])}
         />
       </Sectiune>
 
@@ -262,5 +303,6 @@ function Stare({ status }: { status: string }) {
 
 const formatNumar = (n: number) => new Intl.NumberFormat("ro-RO").format(n);
 const formatLei = (s: string) => new Intl.NumberFormat("ro-RO", { minimumFractionDigits: 2 }).format(Number(s));
+const formatProcent = (s: string) => new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 2 }).format(Number(s));
 const formatData = (d: Date) =>
   new Intl.DateTimeFormat("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Europe/Bucharest" }).format(d);

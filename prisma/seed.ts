@@ -73,7 +73,7 @@ const faraDiacritice = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "")
 
 async function golesteTabelele() {
   const tabele = [
-    "cupoane_reducere", "tranzactii_tokeni", "comenzi_simulate", "portofele_tokeni", "abonamente", "pachete_tokeni",
+    "facturi_simulate", "cupoane_reducere", "tranzactii_tokeni", "comenzi_simulate", "portofele_tokeni", "abonamente", "pachete_tokeni",
     "actiuni_taxabile", "planuri", "notificari", "sesizari", "anunturi", "penalizari",
     "alocari_plati", "plati", "detalii_intretinere", "fise_intretinere", "facturi_furnizori",
     "citiri_contoare", "contoare", "luni_intretinere", "categorii_cheltuieli", "furnizori",
@@ -90,13 +90,13 @@ async function golesteTabelele() {
 
 async function seedCatalogMonetizare() {
   const free = await prisma.plan.create({
-    data: { cod: "FREE", denumire: "Free", pretLunar: "0.00", tokeniLunari: 50, maxApartamente: 30, maxBlocuri: 1, raportAnual: false, descriere: "Pentru asociații mici: un bloc, cel mult 30 de apartamente și 50 de tokeni pe lună." },
+    data: { cod: "FREE", denumire: "Free", pretLunar: "0.00", tokeniLunari: 50, maxApartamente: 30, maxBlocuri: 1, raportAnual: false, pretAnual: null, recomandat: false, descriere: "Pentru asociații mici: un bloc, cel mult 30 de apartamente și 50 de tokeni pe lună." },
   });
   const pro = await prisma.plan.create({
-    data: { cod: "PRO", denumire: "Pro", pretLunar: "49.00", tokeniLunari: 400, maxApartamente: 300, maxBlocuri: 5, raportAnual: true, descriere: "Pentru asociații obișnuite: până la 5 blocuri, 400 de tokeni pe lună și raport anual." },
+    data: { cod: "PRO", denumire: "Pro", pretLunar: "49.00", tokeniLunari: 400, maxApartamente: 300, maxBlocuri: 5, raportAnual: true, pretAnual: "490.00", recomandat: true, descriere: "Pentru asociații obișnuite: până la 5 blocuri, 400 de tokeni pe lună și raport anual." },
   });
   const max = await prisma.plan.create({
-    data: { cod: "MAX", denumire: "Max", pretLunar: "149.00", tokeniLunari: 2000, maxApartamente: null, maxBlocuri: null, raportAnual: true, descriere: "Pentru complexe mari: fără limită de blocuri sau apartamente și 2.000 de tokeni pe lună." },
+    data: { cod: "MAX", denumire: "Max", pretLunar: "149.00", tokeniLunari: 2000, maxApartamente: null, maxBlocuri: null, raportAnual: true, pretAnual: "1490.00", recomandat: false, descriere: "Pentru complexe mari: fără limită de blocuri sau apartamente și 2.000 de tokeni pe lună." },
   });
 
   const definitii: [CodActiune, string, number][] = [
@@ -121,7 +121,7 @@ async function seedCatalogMonetizare() {
       { cod: "BUNVENIT20", procentReducere: 20, planId: pro.id, valabilPana: d("2026-12-31"), utilizariMaxime: 100, utilizari: 0 },
       { cod: "MAX15", procentReducere: 15, planId: max.id, valabilPana: d("2026-11-30"), utilizariMaxime: 20, utilizari: 3 },
       { cod: "TOAMNA10", procentReducere: 10, planId: null, valabilPana: d("2026-11-15"), utilizariMaxime: 50, utilizari: 12 },
-      { cod: "VARA5", procentReducere: 5, planId: null, valabilPana: d("2026-08-31"), utilizariMaxime: 10, utilizari: 10, activ: false },
+      { cod: "VARA5", procentReducere: "7.50", planId: null, valabilPana: d("2026-08-31"), utilizariMaxime: 10, utilizari: 10, activ: false },
     ],
   });
 
@@ -438,6 +438,23 @@ async function main() {
   });
   await prisma.portofelTokeni.update({ where: { id: p3.id }, data: { tokeniPlan: 0, tokeniExtra: 0, ultimaResetare: d("2026-09-20") } });
 
+  // ===== Facturi simulate: una pentru fiecare comanda achitata (suma comenzii include TVA 21%) =====
+  const achitate = await prisma.comandaSimulata.findMany({ where: { status: "ACHITATA" }, orderBy: { achitataLa: "asc" } });
+  await prisma.facturaSimulata.createMany({
+    data: achitate.map((c, i) => {
+      const totalBani = Math.round(Number(c.suma) * 100);
+      const subtotalBani = Math.round(totalBani / 1.21);
+      return {
+        comandaId: c.id,
+        numar: `BM-2026-${String(i + 1).padStart(6, "0")}`,
+        dataEmitere: c.achitataLa!,
+        subtotal: (subtotalBani / 100).toFixed(2),
+        tva: ((totalBani - subtotalBani) / 100).toFixed(2),
+        total: (totalBani / 100).toFixed(2),
+      };
+    }),
+  });
+
   // ===== Domeniu A1: furnizori, categorii, doua luni de intretinere, plati =====
   const aid = a1.asociatie.id;
   const furnizori = {
@@ -581,6 +598,7 @@ async function main() {
   const rezumat = {
     planuri: await prisma.plan.count(),
     cupoane: await prisma.cuponReducere.count(),
+    facturiSimulate: await prisma.facturaSimulata.count(),
     abonamente: await prisma.abonament.count(),
     tranzactiiTokeni: await prisma.tranzactieTokeni.count(),
     comenziSimulate: await prisma.comandaSimulata.count(),
