@@ -1,0 +1,24 @@
+{
+  "name": "repository-dbfirst",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Repository_DBFirst: modelele generate din baza de date (prisma db pull) si contextul de acces (PrismaClient)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "db:pull": "prisma db pull",
+    "generate": "prisma generate",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "dotenv": "^17.2.3",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "prisma": "7.10.1"
+  }
+}

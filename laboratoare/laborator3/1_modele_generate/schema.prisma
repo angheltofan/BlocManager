@@ -1,0 +1,545 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model abonamente {
+  id                                          Int                @id @default(autoincrement())
+  asociatie_id                                Int
+  plan_id                                     Int
+  plan_urmator_id                             Int?
+  inceput_perioada                            DateTime
+  sfarsit_perioada                            DateTime
+  status                                      StatusAbonament    @default(ACTIV)
+  reinnoire_automata                          Boolean            @default(true)
+  created_at                                  DateTime           @default(now())
+  asociatii                                   asociatii          @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+  planuri_abonamente_plan_idToplanuri         planuri            @relation("abonamente_plan_idToplanuri", fields: [plan_id], references: [id])
+  planuri_abonamente_plan_urmator_idToplanuri planuri?           @relation("abonamente_plan_urmator_idToplanuri", fields: [plan_urmator_id], references: [id])
+  comenzi_simulate                            comenzi_simulate[]
+
+  @@index([asociatie_id, status])
+  @@index([status, sfarsit_perioada])
+}
+
+model actiuni_taxabile {
+  id                Int                 @id @default(autoincrement())
+  cod               CodActiune          @unique
+  denumire          String
+  cost_tokeni       Int
+  tranzactii_tokeni tranzactii_tokeni[]
+}
+
+model alocari_plati {
+  id               Int              @id @default(autoincrement())
+  plata_id         Int
+  fisa_id          Int
+  suma             Decimal          @db.Decimal(12, 2)
+  fise_intretinere fise_intretinere @relation(fields: [fisa_id], references: [id])
+  plati            plati            @relation(fields: [plata_id], references: [id], onDelete: Cascade)
+
+  @@unique([plata_id, fisa_id])
+}
+
+model anunturi {
+  id             Int         @id @default(autoincrement())
+  asociatie_id   Int
+  autor_id       Int
+  titlu          String
+  continut       String
+  important      Boolean     @default(false)
+  data_publicare DateTime    @default(now())
+  asociatii      asociatii   @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+  utilizatori    utilizatori @relation(fields: [autor_id], references: [id])
+}
+
+model apartamente {
+  id               Int                @id @default(autoincrement())
+  scara_id         Int
+  numar            String
+  etaj             Int
+  suprafata_utila  Decimal            @db.Decimal(8, 2)
+  cota_parte       Decimal            @db.Decimal(7, 4)
+  nr_persoane      Int                @default(1)
+  scari            scari              @relation(fields: [scara_id], references: [id], onDelete: Cascade)
+  contoare         contoare[]
+  fise_intretinere fise_intretinere[]
+  plati            plati[]
+  proprietati      proprietati[]
+  sesizari         sesizari[]
+
+  @@unique([scara_id, numar])
+}
+
+model asociatii {
+  id                     Int                    @id @default(autoincrement())
+  denumire               String
+  cui                    String                 @unique
+  adresa                 String
+  iban                   String
+  banca                  String?
+  zi_limita_citiri       Int                    @default(20)
+  zile_scadenta          Int                    @default(20)
+  procent_penalizare_zi  Decimal                @default(0.2) @db.Decimal(5, 3)
+  zile_gratie_penalizare Int                    @default(30)
+  created_at             DateTime               @default(now())
+  abonamente             abonamente[]
+  anunturi               anunturi[]
+  blocuri                blocuri[]
+  categorii_cheltuieli   categorii_cheltuieli[]
+  comenzi_simulate       comenzi_simulate[]
+  fonduri                fonduri[]
+  furnizori              furnizori[]
+  luni_intretinere       luni_intretinere[]
+  portofele_tokeni       portofele_tokeni?
+  utilizatori            utilizatori[]
+}
+
+model blocuri {
+  id           Int       @id @default(autoincrement())
+  asociatie_id Int
+  denumire     String
+  adresa       String
+  asociatii    asociatii @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+  scari        scari[]
+
+  @@unique([asociatie_id, denumire])
+}
+
+model categorii_cheltuieli {
+  id                  Int                   @id @default(autoincrement())
+  asociatie_id        Int
+  denumire            String
+  mod_repartizare     ModRepartizare
+  activa              Boolean               @default(true)
+  asociatii           asociatii             @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+  detalii_intretinere detalii_intretinere[]
+  facturi_furnizori   facturi_furnizori[]
+
+  @@unique([asociatie_id, denumire])
+}
+
+model citiri_contoare {
+  id               Int              @id @default(autoincrement())
+  contor_id        Int
+  luna_id          Int
+  introdus_de_id   Int?
+  index            Decimal          @db.Decimal(12, 3)
+  consum           Decimal          @db.Decimal(12, 3)
+  data_citire      DateTime         @default(now())
+  sursa            SursaCitire      @default(PROPRIETAR)
+  validata         Boolean          @default(false)
+  contoare         contoare         @relation(fields: [contor_id], references: [id], onDelete: Cascade)
+  utilizatori      utilizatori?     @relation(fields: [introdus_de_id], references: [id])
+  luni_intretinere luni_intretinere @relation(fields: [luna_id], references: [id])
+
+  @@unique([contor_id, luna_id])
+}
+
+model comenzi_simulate {
+  id                Int                 @id @default(autoincrement())
+  asociatie_id      Int
+  utilizator_id     Int?
+  abonament_id      Int?
+  tip               TipComanda
+  plan_id           Int?
+  pachet_id         Int?
+  suma              Decimal             @db.Decimal(10, 2)
+  status            StatusComanda       @default(IN_ASTEPTARE)
+  referinta         String              @unique
+  achitata_la       DateTime?
+  created_at        DateTime            @default(now())
+  abonamente        abonamente?         @relation(fields: [abonament_id], references: [id])
+  asociatii         asociatii           @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+  pachete_tokeni    pachete_tokeni?     @relation(fields: [pachet_id], references: [id])
+  planuri           planuri?            @relation(fields: [plan_id], references: [id])
+  utilizatori       utilizatori?        @relation(fields: [utilizator_id], references: [id])
+  tranzactii_tokeni tranzactii_tokeni[]
+
+  @@index([asociatie_id, created_at])
+  @@index([status])
+}
+
+model contoare {
+  id                          Int               @id @default(autoincrement())
+  apartament_id               Int
+  serie                       String
+  data_verificare_metrologica DateTime?         @db.Date
+  activ                       Boolean           @default(true)
+  citiri_contoare             citiri_contoare[]
+  apartamente                 apartamente       @relation(fields: [apartament_id], references: [id], onDelete: Cascade)
+
+  @@unique([apartament_id, serie])
+}
+
+model detalii_intretinere {
+  id                   Int                  @id @default(autoincrement())
+  fisa_id              Int
+  categorie_id         Int
+  baza_calcul          Decimal              @db.Decimal(12, 4)
+  suma                 Decimal              @db.Decimal(12, 2)
+  categorii_cheltuieli categorii_cheltuieli @relation(fields: [categorie_id], references: [id])
+  fise_intretinere     fise_intretinere     @relation(fields: [fisa_id], references: [id], onDelete: Cascade)
+
+  @@unique([fisa_id, categorie_id])
+}
+
+model facturi_furnizori {
+  id                   Int                  @id @default(autoincrement())
+  furnizor_id          Int
+  luna_id              Int
+  categorie_id         Int
+  numar                String
+  data_emitere         DateTime             @db.Date
+  data_scadenta        DateTime             @db.Date
+  suma                 Decimal              @db.Decimal(12, 2)
+  cantitate            Decimal?             @db.Decimal(12, 3)
+  platita              Boolean              @default(false)
+  fisier_url           String?
+  categorii_cheltuieli categorii_cheltuieli @relation(fields: [categorie_id], references: [id])
+  furnizori            furnizori            @relation(fields: [furnizor_id], references: [id])
+  luni_intretinere     luni_intretinere     @relation(fields: [luna_id], references: [id])
+
+  @@unique([furnizor_id, numar])
+  @@index([luna_id])
+}
+
+model fise_intretinere {
+  id                  Int                   @id @default(autoincrement())
+  luna_id             Int
+  apartament_id       Int
+  total_luna_curenta  Decimal               @db.Decimal(12, 2)
+  restanta_anterioara Decimal               @default(0) @db.Decimal(12, 2)
+  penalizari          Decimal               @default(0) @db.Decimal(12, 2)
+  total_de_plata      Decimal               @db.Decimal(12, 2)
+  achitat             Decimal               @default(0) @db.Decimal(12, 2)
+  status              StatusFisa            @default(NEPLATITA)
+  created_at          DateTime              @default(now())
+  alocari_plati       alocari_plati[]
+  detalii_intretinere detalii_intretinere[]
+  apartamente         apartamente           @relation(fields: [apartament_id], references: [id])
+  luni_intretinere    luni_intretinere      @relation(fields: [luna_id], references: [id], onDelete: Cascade)
+  penalizari_lista    penalizari[]
+
+  @@unique([luna_id, apartament_id])
+  @@index([apartament_id, status])
+}
+
+model fonduri {
+  id                 Int       @id @default(autoincrement())
+  asociatie_id       Int
+  tip                TipFond
+  sold               Decimal   @default(0) @db.Decimal(12, 2)
+  contributie_lunara Decimal   @default(0) @db.Decimal(10, 2)
+  asociatii          asociatii @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+
+  @@unique([asociatie_id, tip])
+}
+
+model furnizori {
+  id                Int                 @id @default(autoincrement())
+  asociatie_id      Int
+  denumire          String
+  cui               String
+  iban              String?
+  facturi_furnizori facturi_furnizori[]
+  asociatii         asociatii           @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+
+  @@unique([asociatie_id, cui])
+}
+
+model luni_intretinere {
+  id                 Int                 @id @default(autoincrement())
+  asociatie_id       Int
+  an                 Int
+  luna               Int
+  status             StatusLuna          @default(DESCHISA)
+  data_limita_citiri DateTime            @db.Date
+  data_publicare     DateTime?
+  data_scadenta      DateTime?           @db.Date
+  aprobat_de_id      Int?
+  citiri_contoare    citiri_contoare[]
+  facturi_furnizori  facturi_furnizori[]
+  fise_intretinere   fise_intretinere[]
+  utilizatori        utilizatori?        @relation(fields: [aprobat_de_id], references: [id])
+  asociatii          asociatii           @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+
+  @@unique([asociatie_id, an, luna])
+}
+
+model notificari {
+  id            Int           @id @default(autoincrement())
+  utilizator_id Int
+  tip           TipNotificare
+  mesaj         String
+  citita        Boolean       @default(false)
+  data_creare   DateTime      @default(now())
+  utilizatori   utilizatori   @relation(fields: [utilizator_id], references: [id], onDelete: Cascade)
+
+  @@index([utilizator_id, citita])
+}
+
+model pachete_tokeni {
+  id               Int                @id @default(autoincrement())
+  denumire         String
+  tokeni           Int
+  pret             Decimal            @db.Decimal(10, 2)
+  activ            Boolean            @default(true)
+  comenzi_simulate comenzi_simulate[]
+}
+
+model penalizari {
+  id               Int              @id @default(autoincrement())
+  fisa_id          Int
+  data_calcul      DateTime         @db.Date
+  zile_intarziere  Int
+  suma             Decimal          @db.Decimal(10, 2)
+  fise_intretinere fise_intretinere @relation(fields: [fisa_id], references: [id], onDelete: Cascade)
+
+  @@unique([fisa_id, data_calcul])
+}
+
+model planuri {
+  id                                             Int                @id @default(autoincrement())
+  cod                                            String             @unique
+  denumire                                       String
+  pret_lunar                                     Decimal            @db.Decimal(10, 2)
+  tokeni_lunari                                  Int
+  max_apartamente                                Int?
+  max_blocuri                                    Int?
+  raport_anual                                   Boolean            @default(false)
+  activ                                          Boolean            @default(true)
+  descriere                                      String?            @db.VarChar(200)
+  abonamente_abonamente_plan_idToplanuri         abonamente[]       @relation("abonamente_plan_idToplanuri")
+  abonamente_abonamente_plan_urmator_idToplanuri abonamente[]       @relation("abonamente_plan_urmator_idToplanuri")
+  comenzi_simulate                               comenzi_simulate[]
+  cupoane_reducere                               cupoane_reducere[]
+}
+
+model plati {
+  id                                               Int             @id @default(autoincrement())
+  apartament_id                                    Int
+  platitor_id                                      Int?
+  inregistrat_de_id                                Int?
+  suma                                             Decimal         @db.Decimal(12, 2)
+  data_plata                                       DateTime        @default(now())
+  metoda                                           MetodaPlata
+  numar_chitanta                                   String          @unique
+  status                                           StatusPlata     @default(INREGISTRATA)
+  alocari_plati                                    alocari_plati[]
+  apartamente                                      apartamente     @relation(fields: [apartament_id], references: [id])
+  utilizatori_plati_inregistrat_de_idToutilizatori utilizatori?    @relation("plati_inregistrat_de_idToutilizatori", fields: [inregistrat_de_id], references: [id])
+  utilizatori_plati_platitor_idToutilizatori       utilizatori?    @relation("plati_platitor_idToutilizatori", fields: [platitor_id], references: [id])
+
+  @@index([apartament_id, data_plata])
+}
+
+model portofele_tokeni {
+  id                Int                 @id @default(autoincrement())
+  asociatie_id      Int                 @unique
+  tokeni_plan       Int                 @default(0)
+  tokeni_extra      Int                 @default(0)
+  ultima_resetare   DateTime?
+  updated_at        DateTime
+  asociatii         asociatii           @relation(fields: [asociatie_id], references: [id], onDelete: Cascade)
+  tranzactii_tokeni tranzactii_tokeni[]
+}
+
+model proprietati {
+  id               Int         @id @default(autoincrement())
+  apartament_id    Int
+  utilizator_id    Int
+  procent_detinere Decimal     @default(100) @db.Decimal(5, 2)
+  data_inceput     DateTime    @db.Date
+  data_sfarsit     DateTime?   @db.Date
+  apartamente      apartamente @relation(fields: [apartament_id], references: [id], onDelete: Cascade)
+  utilizatori      utilizatori @relation(fields: [utilizator_id], references: [id])
+
+  @@index([utilizator_id])
+}
+
+model scari {
+  id          Int           @id @default(autoincrement())
+  bloc_id     Int
+  denumire    String
+  apartamente apartamente[]
+  blocuri     blocuri       @relation(fields: [bloc_id], references: [id], onDelete: Cascade)
+
+  @@unique([bloc_id, denumire])
+}
+
+model sesizari {
+  id             Int            @id @default(autoincrement())
+  apartament_id  Int
+  autor_id       Int
+  titlu          String
+  descriere      String
+  status         StatusSesizare @default(NOUA)
+  raspuns        String?
+  data_creare    DateTime       @default(now())
+  data_rezolvare DateTime?
+  apartamente    apartamente    @relation(fields: [apartament_id], references: [id], onDelete: Cascade)
+  utilizatori    utilizatori    @relation(fields: [autor_id], references: [id])
+
+  @@index([status])
+}
+
+model tranzactii_tokeni {
+  id               Int               @id @default(autoincrement())
+  portofel_id      Int
+  tip              TipTranzactie
+  cantitate        Int
+  sold_dupa        Int
+  actiune_id       Int?
+  comanda_id       Int?
+  utilizator_id    Int?
+  descriere        String?
+  created_at       DateTime          @default(now())
+  actiuni_taxabile actiuni_taxabile? @relation(fields: [actiune_id], references: [id])
+  comenzi_simulate comenzi_simulate? @relation(fields: [comanda_id], references: [id])
+  portofele_tokeni portofele_tokeni  @relation(fields: [portofel_id], references: [id], onDelete: Cascade)
+  utilizatori      utilizatori?      @relation(fields: [utilizator_id], references: [id])
+
+  @@index([portofel_id, created_at])
+}
+
+model utilizatori {
+  id                                         Int                 @id @default(autoincrement())
+  asociatie_id                               Int?
+  email                                      String              @unique
+  parola_hash                                String
+  nume                                       String
+  prenume                                    String
+  telefon                                    String?
+  rol                                        Rol                 @default(PROPRIETAR)
+  activ                                      Boolean             @default(true)
+  created_at                                 DateTime            @default(now())
+  updated_at                                 DateTime
+  anunturi                                   anunturi[]
+  citiri_contoare                            citiri_contoare[]
+  comenzi_simulate                           comenzi_simulate[]
+  luni_intretinere                           luni_intretinere[]
+  notificari                                 notificari[]
+  plati_plati_inregistrat_de_idToutilizatori plati[]             @relation("plati_inregistrat_de_idToutilizatori")
+  plati_plati_platitor_idToutilizatori       plati[]             @relation("plati_platitor_idToutilizatori")
+  proprietati                                proprietati[]
+  sesizari                                   sesizari[]
+  tranzactii_tokeni                          tranzactii_tokeni[]
+  asociatii                                  asociatii?          @relation(fields: [asociatie_id], references: [id])
+}
+
+model cupoane_reducere {
+  id               Int      @id @default(autoincrement())
+  cod              String   @unique @db.VarChar(30)
+  procent_reducere Int
+  plan_id          Int?
+  valabil_pana     DateTime @db.Date
+  utilizari_maxime Int      @default(1)
+  utilizari        Int      @default(0)
+  activ            Boolean  @default(true)
+  created_at       DateTime @default(now())
+  planuri          planuri? @relation(fields: [plan_id], references: [id])
+}
+
+enum CodActiune {
+  CALCUL
+  RECALCUL
+  NOTIFICARI
+  EXPORT_PDF
+  RAPORT
+}
+
+enum MetodaPlata {
+  CASIERIE
+  TRANSFER
+  CARD
+}
+
+enum ModRepartizare {
+  COTA_PARTE
+  PERSOANE
+  CONSUM
+  APARTAMENT
+  SUPRAFATA
+}
+
+enum Rol {
+  ADMIN
+  PRESEDINTE
+  PROPRIETAR
+}
+
+enum StatusAbonament {
+  ACTIV
+  SUSPENDAT
+  ANULAT
+  EXPIRAT
+}
+
+enum StatusComanda {
+  IN_ASTEPTARE
+  ACHITATA
+  ANULATA
+}
+
+enum StatusFisa {
+  NEPLATITA
+  PARTIAL_PLATITA
+  PLATITA
+}
+
+enum StatusLuna {
+  DESCHISA
+  CALCULATA
+  APROBATA
+  PUBLICATA
+  INCHISA
+}
+
+enum StatusPlata {
+  INREGISTRATA
+  ANULATA
+}
+
+enum StatusSesizare {
+  NOUA
+  IN_LUCRU
+  REZOLVATA
+}
+
+enum SursaCitire {
+  PROPRIETAR
+  ADMIN
+  ESTIMAT
+}
+
+enum TipComanda {
+  ABONAMENT
+  PACHET
+}
+
+enum TipFond {
+  RULMENT
+  REPARATII
+}
+
+enum TipNotificare {
+  INTRETINERE
+  PLATA
+  SESIZARE
+  ABONAMENT
+  TOKENI
+  SISTEM
+}
+
+enum TipTranzactie {
+  ALOCARE
+  CONSUM
+  CUMPARARE
+  EXPIRARE
+  BONUS
+}

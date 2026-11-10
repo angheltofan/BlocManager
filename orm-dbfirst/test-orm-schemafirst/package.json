@@ -1,0 +1,15 @@
+{
+  "name": "test-orm-schemafirst",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TestORM_SchemaFirst: aplicatie consola care apeleaza metodele din clasele Accessor",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "nivel-acces-date-dbfirst": "1.0.0",
+    "repository-dbfirst": "1.0.0"
+  }
+}

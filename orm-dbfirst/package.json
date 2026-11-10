@@ -1,0 +1,23 @@
+{
+  "name": "demo-orm-dbfirst",
+  "private": true,
+  "description": "BlockManager - Laborator 3: ORM Database First (Prisma db pull)",
+  "type": "module",
+  "workspaces": [
+    "repository-dbfirst",
+    "nivel-acces-date-dbfirst",
+    "test-orm-schemafirst"
+  ],
+  "scripts": {
+    "db:pull": "npm run db:pull -w repository-dbfirst",
+    "generate": "npm run generate -w repository-dbfirst",
+    "start": "npm start -w test-orm-schemafirst",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pg": "^8.15.6",
+    "tsx": "4.23.15",
+    "typescript": "^5"
+  }
+}

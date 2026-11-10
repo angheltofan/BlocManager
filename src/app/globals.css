@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f7f5;
+  --surface: #ffffff;
+  --foreground: #1c1c1a;
+  --muted: #6b6b66;
+  --border: #e4e4df;
+  --accent: #2f6f5e;
+  --accent-soft: #e3efe9;
+  --warn: #9a5b00;
+  --warn-soft: #fbefd9;
+  --danger: #a33a2c;
+  --danger-soft: #f8e3df;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #141413;
+    --surface: #1d1d1b;
+    --foreground: #ededea;
+    --muted: #a3a39c;
+    --border: #33332f;
+    --accent: #7cc4ab;
+    --accent-soft: #1f3a31;
+    --warn: #e9b35c;
+    --warn-soft: #3a2c14;
+    --danger: #ee8a7b;
+    --danger-soft: #3d1f1a;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}

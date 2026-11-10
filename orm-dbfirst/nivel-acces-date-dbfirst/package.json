@@ -1,0 +1,13 @@
+{
+  "name": "nivel-acces-date-dbfirst",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NivelAccesDate_DBFirst: clasele Accessor, cu metode de preluare a datelor din baza de date",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "repository-dbfirst": "1.0.0"
+  }
+}

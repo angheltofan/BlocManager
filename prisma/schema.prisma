@@ -1,0 +1,646 @@
+// BlockManager - schema bazei de date (PostgreSQL + Prisma)
+// 29 de tabele: monetizare cu abonamente, tokeni si cupoane (8) + domeniul asociatiei (21)
+
+// Prisma 7: adresa bazei de date se afla in prisma.config.ts (DATABASE_URL din .env)
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------
+// ENUMERARI
+// ---------------------------------------------------------------
+
+enum Rol {
+  ADMIN
+  PRESEDINTE
+  PROPRIETAR
+}
+
+enum SursaCitire {
+  PROPRIETAR
+  ADMIN
+  ESTIMAT
+}
+
+enum ModRepartizare {
+  COTA_PARTE
+  PERSOANE
+  CONSUM
+  APARTAMENT
+  SUPRAFATA
+}
+
+enum StatusLuna {
+  DESCHISA
+  CALCULATA
+  APROBATA
+  PUBLICATA
+  INCHISA
+}
+
+enum StatusFisa {
+  NEPLATITA
+  PARTIAL_PLATITA
+  PLATITA
+}
+
+enum MetodaPlata {
+  CASIERIE
+  TRANSFER
+  CARD
+}
+
+enum StatusPlata {
+  INREGISTRATA
+  ANULATA
+}
+
+enum TipFond {
+  RULMENT
+  REPARATII
+}
+
+enum StatusSesizare {
+  NOUA
+  IN_LUCRU
+  REZOLVATA
+}
+
+enum TipNotificare {
+  INTRETINERE
+  PLATA
+  SESIZARE
+  ABONAMENT
+  TOKENI
+  SISTEM
+}
+
+enum CodActiune {
+  CALCUL
+  RECALCUL
+  NOTIFICARI
+  EXPORT_PDF
+  RAPORT
+}
+
+enum StatusAbonament {
+  ACTIV
+  SUSPENDAT // Pro/Max neplatit: planul nu poate fi folosit pana la plata
+  ANULAT
+  EXPIRAT
+}
+
+enum TipTranzactie {
+  ALOCARE
+  CONSUM
+  CUMPARARE
+  EXPIRARE
+  BONUS
+}
+
+enum TipComanda {
+  ABONAMENT
+  PACHET
+}
+
+enum StatusComanda {
+  IN_ASTEPTARE
+  ACHITATA
+  ANULATA
+}
+
+// ---------------------------------------------------------------
+// STRUCTURA IMOBILULUI SI UTILIZATORI
+// ---------------------------------------------------------------
+
+model Utilizator {
+  id          Int      @id @default(autoincrement())
+  asociatieId Int?     @map("asociatie_id")
+  email       String   @unique
+  parolaHash  String   @map("parola_hash")
+  nume        String
+  prenume     String
+  telefon     String?
+  rol         Rol      @default(PROPRIETAR)
+  activ       Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  asociatie         Asociatie?         @relation(fields: [asociatieId], references: [id], onDelete: SetNull)
+  proprietati       Proprietate[]
+  citiriIntroduse   CitireContor[]     @relation("CitireIntrodusDe")
+  luniAprobate      LunaIntretinere[]  @relation("LunaAprobatDe")
+  platiEfectuate    Plata[]            @relation("PlataPlatitor")
+  platiInregistrate Plata[]            @relation("PlataInregistrator")
+  anunturi          Anunt[]
+  sesizari          Sesizare[]
+  notificari        Notificare[]
+  comenzi           ComandaSimulata[]
+  tranzactiiTokeni  TranzactieTokeni[]
+
+  @@map("utilizatori")
+}
+
+model Asociatie {
+  id                   Int      @id @default(autoincrement())
+  denumire             String
+  cui                  String   @unique
+  adresa               String
+  iban                 String
+  banca                String?
+  ziLimitaCitiri       Int      @default(20) @map("zi_limita_citiri")
+  zileScadenta         Int      @default(20) @map("zile_scadenta")
+  procentPenalizareZi  Decimal  @default(0.2) @map("procent_penalizare_zi") @db.Decimal(5, 3)
+  zileGratiePenalizare Int      @default(30) @map("zile_gratie_penalizare")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  utilizatori         Utilizator[]
+  blocuri             Bloc[]
+  furnizori           Furnizor[]
+  categoriiCheltuieli CategorieCheltuiala[]
+  luni                LunaIntretinere[]
+  fonduri             Fond[]
+  anunturi            Anunt[]
+  abonamente          Abonament[]
+  portofel            PortofelTokeni?
+  comenzi             ComandaSimulata[]
+
+  @@map("asociatii")
+}
+
+model Bloc {
+  id          Int    @id @default(autoincrement())
+  asociatieId Int    @map("asociatie_id")
+  denumire    String
+  adresa      String
+
+  asociatie Asociatie @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  scari     Scara[]
+
+  @@unique([asociatieId, denumire])
+  @@map("blocuri")
+}
+
+model Scara {
+  id       Int    @id @default(autoincrement())
+  blocId   Int    @map("bloc_id")
+  denumire String
+
+  bloc        Bloc         @relation(fields: [blocId], references: [id], onDelete: Cascade)
+  apartamente Apartament[]
+
+  @@unique([blocId, denumire])
+  @@map("scari")
+}
+
+model Apartament {
+  id             Int     @id @default(autoincrement())
+  scaraId        Int     @map("scara_id")
+  numar          String
+  etaj           Int
+  suprafataUtila Decimal @map("suprafata_utila") @db.Decimal(8, 2)
+  cotaParte      Decimal @map("cota_parte") @db.Decimal(7, 4)
+  nrPersoane     Int     @default(1) @map("nr_persoane")
+
+  scara       Scara             @relation(fields: [scaraId], references: [id], onDelete: Cascade)
+  proprietati Proprietate[]
+  contoare    Contor[]
+  fise        FisaIntretinere[]
+  plati       Plata[]
+  sesizari    Sesizare[]
+
+  @@unique([scaraId, numar])
+  @@map("apartamente")
+}
+
+model Proprietate {
+  id              Int       @id @default(autoincrement())
+  apartamentId    Int       @map("apartament_id")
+  utilizatorId    Int       @map("utilizator_id")
+  procentDetinere Decimal   @default(100) @map("procent_detinere") @db.Decimal(5, 2)
+  dataInceput     DateTime  @map("data_inceput") @db.Date
+  dataSfarsit     DateTime? @map("data_sfarsit") @db.Date
+
+  apartament Apartament @relation(fields: [apartamentId], references: [id], onDelete: Cascade)
+  utilizator Utilizator @relation(fields: [utilizatorId], references: [id], onDelete: Restrict)
+
+  @@index([utilizatorId])
+  @@map("proprietati")
+}
+
+// ---------------------------------------------------------------
+// CONSUMURI
+// ---------------------------------------------------------------
+
+// Apometru: singurul consum citit individual (apa)
+model Contor {
+  id                        Int       @id @default(autoincrement())
+  apartamentId              Int       @map("apartament_id")
+  serie                     String
+  dataVerificareMetrologica DateTime? @map("data_verificare_metrologica") @db.Date
+  activ                     Boolean   @default(true)
+
+  apartament Apartament     @relation(fields: [apartamentId], references: [id], onDelete: Cascade)
+  citiri     CitireContor[]
+
+  @@unique([apartamentId, serie])
+  @@map("contoare")
+}
+
+model CitireContor {
+  id           Int         @id @default(autoincrement())
+  contorId     Int         @map("contor_id")
+  lunaId       Int         @map("luna_id")
+  introdusDeId Int?        @map("introdus_de_id")
+  index        Decimal     @db.Decimal(12, 3)
+  consum       Decimal     @db.Decimal(12, 3)
+  dataCitire   DateTime    @default(now()) @map("data_citire")
+  sursa        SursaCitire @default(PROPRIETAR)
+  validata     Boolean     @default(false)
+
+  contor     Contor          @relation(fields: [contorId], references: [id], onDelete: Cascade)
+  luna       LunaIntretinere @relation(fields: [lunaId], references: [id], onDelete: Restrict)
+  introdusDe Utilizator?     @relation("CitireIntrodusDe", fields: [introdusDeId], references: [id], onDelete: SetNull)
+
+  @@unique([contorId, lunaId])
+  @@map("citiri_contoare")
+}
+
+// ---------------------------------------------------------------
+// CHELTUIELI SI CALCULUL INTRETINERII
+// ---------------------------------------------------------------
+
+model Furnizor {
+  id          Int     @id @default(autoincrement())
+  asociatieId Int     @map("asociatie_id")
+  denumire    String
+  cui         String
+  iban        String?
+
+  asociatie Asociatie         @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  facturi   FacturaFurnizor[]
+
+  @@unique([asociatieId, cui])
+  @@map("furnizori")
+}
+
+model CategorieCheltuiala {
+  id             Int            @id @default(autoincrement())
+  asociatieId    Int            @map("asociatie_id")
+  denumire       String
+  modRepartizare ModRepartizare @map("mod_repartizare")
+  activa         Boolean        @default(true)
+
+  asociatie Asociatie            @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  facturi   FacturaFurnizor[]
+  detalii   DetaliuIntretinere[]
+
+  @@unique([asociatieId, denumire])
+  @@map("categorii_cheltuieli")
+}
+
+model LunaIntretinere {
+  id               Int        @id @default(autoincrement())
+  asociatieId      Int        @map("asociatie_id")
+  an               Int
+  luna             Int
+  status           StatusLuna @default(DESCHISA)
+  dataLimitaCitiri DateTime   @map("data_limita_citiri") @db.Date
+  dataPublicare    DateTime?  @map("data_publicare")
+  dataScadenta     DateTime?  @map("data_scadenta") @db.Date
+  aprobatDeId      Int?       @map("aprobat_de_id")
+
+  asociatie Asociatie         @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  aprobatDe Utilizator?       @relation("LunaAprobatDe", fields: [aprobatDeId], references: [id], onDelete: SetNull)
+  facturi   FacturaFurnizor[]
+  citiri    CitireContor[]
+  fise      FisaIntretinere[]
+
+  @@unique([asociatieId, an, luna])
+  @@map("luni_intretinere")
+}
+
+model FacturaFurnizor {
+  id           Int       @id @default(autoincrement())
+  furnizorId   Int       @map("furnizor_id")
+  lunaId       Int       @map("luna_id")
+  categorieId  Int       @map("categorie_id")
+  numar        String
+  dataEmitere  DateTime  @map("data_emitere") @db.Date
+  dataScadenta DateTime  @map("data_scadenta") @db.Date
+  suma         Decimal   @db.Decimal(12, 2)
+  cantitate    Decimal?  @db.Decimal(12, 3)
+  platita      Boolean   @default(false)
+  fisierUrl    String?   @map("fisier_url")
+
+  furnizor  Furnizor            @relation(fields: [furnizorId], references: [id], onDelete: Restrict)
+  luna      LunaIntretinere     @relation(fields: [lunaId], references: [id], onDelete: Restrict)
+  categorie CategorieCheltuiala @relation(fields: [categorieId], references: [id], onDelete: Restrict)
+
+  @@unique([furnizorId, numar])
+  @@index([lunaId])
+  @@map("facturi_furnizori")
+}
+
+model FisaIntretinere {
+  id                 Int        @id @default(autoincrement())
+  lunaId             Int        @map("luna_id")
+  apartamentId       Int        @map("apartament_id")
+  totalLunaCurenta   Decimal    @map("total_luna_curenta") @db.Decimal(12, 2)
+  restantaAnterioara Decimal    @default(0) @map("restanta_anterioara") @db.Decimal(12, 2)
+  penalizari         Decimal    @default(0) @db.Decimal(12, 2)
+  totalDePlata       Decimal    @map("total_de_plata") @db.Decimal(12, 2)
+  achitat            Decimal    @default(0) @db.Decimal(12, 2)
+  status             StatusFisa @default(NEPLATITA)
+  createdAt          DateTime   @default(now()) @map("created_at")
+
+  luna            LunaIntretinere      @relation(fields: [lunaId], references: [id], onDelete: Cascade)
+  apartament      Apartament           @relation(fields: [apartamentId], references: [id], onDelete: Restrict)
+  detalii         DetaliuIntretinere[]
+  alocari         AlocarePlata[]
+  penalizariLista Penalizare[]
+
+  @@unique([lunaId, apartamentId])
+  @@index([apartamentId, status])
+  @@map("fise_intretinere")
+}
+
+model DetaliuIntretinere {
+  id          Int     @id @default(autoincrement())
+  fisaId      Int     @map("fisa_id")
+  categorieId Int     @map("categorie_id")
+  bazaCalcul  Decimal @map("baza_calcul") @db.Decimal(12, 4)
+  suma        Decimal @db.Decimal(12, 2)
+
+  fisa      FisaIntretinere     @relation(fields: [fisaId], references: [id], onDelete: Cascade)
+  categorie CategorieCheltuiala @relation(fields: [categorieId], references: [id], onDelete: Restrict)
+
+  @@unique([fisaId, categorieId])
+  @@map("detalii_intretinere")
+}
+
+model Fond {
+  id                Int     @id @default(autoincrement())
+  asociatieId       Int     @map("asociatie_id")
+  tip               TipFond
+  sold              Decimal @default(0) @db.Decimal(12, 2)
+  contributieLunara Decimal @default(0) @map("contributie_lunara") @db.Decimal(10, 2)
+
+  asociatie Asociatie @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+
+  @@unique([asociatieId, tip])
+  @@map("fonduri")
+}
+
+// ---------------------------------------------------------------
+// INCASARI
+// ---------------------------------------------------------------
+
+model Plata {
+  id               Int         @id @default(autoincrement())
+  apartamentId     Int         @map("apartament_id")
+  platitorId       Int?        @map("platitor_id")
+  inregistratDeId  Int?        @map("inregistrat_de_id")
+  suma             Decimal     @db.Decimal(12, 2)
+  dataPlata        DateTime    @default(now()) @map("data_plata")
+  metoda           MetodaPlata
+  numarChitanta    String      @unique @map("numar_chitanta")
+  status           StatusPlata @default(INREGISTRATA)
+
+  apartament    Apartament     @relation(fields: [apartamentId], references: [id], onDelete: Restrict)
+  platitor      Utilizator?    @relation("PlataPlatitor", fields: [platitorId], references: [id], onDelete: SetNull)
+  inregistratDe Utilizator?    @relation("PlataInregistrator", fields: [inregistratDeId], references: [id], onDelete: SetNull)
+  alocari       AlocarePlata[]
+
+  @@index([apartamentId, dataPlata])
+  @@map("plati")
+}
+
+model AlocarePlata {
+  id      Int     @id @default(autoincrement())
+  plataId Int     @map("plata_id")
+  fisaId  Int     @map("fisa_id")
+  suma    Decimal @db.Decimal(12, 2)
+
+  plata Plata           @relation(fields: [plataId], references: [id], onDelete: Cascade)
+  fisa  FisaIntretinere @relation(fields: [fisaId], references: [id], onDelete: Restrict)
+
+  @@unique([plataId, fisaId])
+  @@map("alocari_plati")
+}
+
+model Penalizare {
+  id             Int      @id @default(autoincrement())
+  fisaId         Int      @map("fisa_id")
+  dataCalcul     DateTime @map("data_calcul") @db.Date
+  zileIntarziere Int      @map("zile_intarziere")
+  suma           Decimal  @db.Decimal(10, 2)
+
+  fisa FisaIntretinere @relation(fields: [fisaId], references: [id], onDelete: Cascade)
+
+  @@unique([fisaId, dataCalcul])
+  @@map("penalizari")
+}
+
+// ---------------------------------------------------------------
+// COMUNICARE
+// ---------------------------------------------------------------
+
+model Anunt {
+  id            Int      @id @default(autoincrement())
+  asociatieId   Int      @map("asociatie_id")
+  autorId       Int      @map("autor_id")
+  titlu         String
+  continut      String   @db.Text
+  important     Boolean  @default(false)
+  dataPublicare DateTime @default(now()) @map("data_publicare")
+
+  asociatie Asociatie  @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  autor     Utilizator @relation(fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@map("anunturi")
+}
+
+model Sesizare {
+  id            Int            @id @default(autoincrement())
+  apartamentId  Int            @map("apartament_id")
+  autorId       Int            @map("autor_id")
+  titlu         String
+  descriere     String         @db.Text
+  status        StatusSesizare @default(NOUA)
+  raspuns       String?        @db.Text
+  dataCreare    DateTime       @default(now()) @map("data_creare")
+  dataRezolvare DateTime?      @map("data_rezolvare")
+
+  apartament Apartament @relation(fields: [apartamentId], references: [id], onDelete: Cascade)
+  autor      Utilizator @relation(fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@map("sesizari")
+}
+
+model Notificare {
+  id           Int           @id @default(autoincrement())
+  utilizatorId Int           @map("utilizator_id")
+  tip          TipNotificare
+  mesaj        String
+  citita       Boolean       @default(false)
+  dataCreare   DateTime      @default(now()) @map("data_creare")
+
+  utilizator Utilizator @relation(fields: [utilizatorId], references: [id], onDelete: Cascade)
+
+  @@index([utilizatorId, citita])
+  @@map("notificari")
+}
+
+// ---------------------------------------------------------------
+// MONETIZARE: PLANURI, ABONAMENTE SI TOKENI (SIMULAT)
+// ---------------------------------------------------------------
+
+model Plan {
+  id             Int     @id @default(autoincrement())
+  cod            String  @unique // FREE, PRO, MAX
+  denumire       String
+  pretLunar      Decimal @map("pret_lunar") @db.Decimal(10, 2)
+  tokeniLunari   Int     @map("tokeni_lunari")
+  maxApartamente Int?    @map("max_apartamente") // null = nelimitat
+  maxBlocuri     Int?    @map("max_blocuri") // null = nelimitat
+  raportAnual    Boolean @default(false) @map("raport_anual")
+  activ          Boolean @default(true)
+  descriere      String? @db.VarChar(200) // Laborator 3, Ex. 3: coloana adaugata in baza de date
+
+  abonamente           Abonament[]       @relation("AbonamentPlan")
+  abonamenteProgramate Abonament[]       @relation("AbonamentPlanUrmator")
+  comenzi              ComandaSimulata[]
+  cupoane              CuponReducere[]
+
+  @@map("planuri")
+}
+
+model ActiuneTaxabila {
+  id         Int        @id @default(autoincrement())
+  cod        CodActiune @unique
+  denumire   String
+  costTokeni Int        @map("cost_tokeni")
+
+  tranzactii TranzactieTokeni[]
+
+  @@map("actiuni_taxabile")
+}
+
+model Abonament {
+  id                Int             @id @default(autoincrement())
+  asociatieId       Int             @map("asociatie_id")
+  planId            Int             @map("plan_id")
+  planUrmatorId     Int?            @map("plan_urmator_id") // downgrade programat la final de perioada
+  inceputPerioada   DateTime        @map("inceput_perioada")
+  sfarsitPerioada   DateTime        @map("sfarsit_perioada")
+  status            StatusAbonament @default(ACTIV)
+  reinnoireAutomata Boolean         @default(true) @map("reinnoire_automata")
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  asociatie   Asociatie         @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  plan        Plan              @relation("AbonamentPlan", fields: [planId], references: [id], onDelete: Restrict)
+  planUrmator Plan?             @relation("AbonamentPlanUrmator", fields: [planUrmatorId], references: [id], onDelete: SetNull)
+  comenzi     ComandaSimulata[]
+
+  @@index([asociatieId, status])
+  @@index([status, sfarsitPerioada])
+  @@map("abonamente")
+}
+
+model PortofelTokeni {
+  id             Int       @id @default(autoincrement())
+  asociatieId    Int       @unique @map("asociatie_id")
+  tokeniPlan     Int       @default(0) @map("tokeni_plan")
+  tokeniExtra    Int       @default(0) @map("tokeni_extra")
+  ultimaResetare DateTime? @map("ultima_resetare")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  asociatie  Asociatie          @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  tranzactii TranzactieTokeni[]
+
+  @@map("portofele_tokeni")
+}
+
+model TranzactieTokeni {
+  id           Int           @id @default(autoincrement())
+  portofelId   Int           @map("portofel_id")
+  tip          TipTranzactie
+  cantitate    Int // pozitiv = intrare, negativ = iesire
+  soldDupa     Int           @map("sold_dupa")
+  actiuneId    Int?          @map("actiune_id")
+  comandaId    Int?          @map("comanda_id")
+  utilizatorId Int?          @map("utilizator_id")
+  descriere    String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  portofel   PortofelTokeni   @relation(fields: [portofelId], references: [id], onDelete: Cascade)
+  actiune    ActiuneTaxabila? @relation(fields: [actiuneId], references: [id], onDelete: SetNull)
+  comanda    ComandaSimulata? @relation(fields: [comandaId], references: [id], onDelete: SetNull)
+  utilizator Utilizator?      @relation(fields: [utilizatorId], references: [id], onDelete: SetNull)
+
+  @@index([portofelId, createdAt])
+  @@map("tranzactii_tokeni")
+}
+
+model PachetTokeni {
+  id       Int     @id @default(autoincrement())
+  denumire String
+  tokeni   Int
+  pret     Decimal @db.Decimal(10, 2)
+  activ    Boolean @default(true)
+
+  comenzi ComandaSimulata[]
+
+  @@map("pachete_tokeni")
+}
+
+model ComandaSimulata {
+  id           Int           @id @default(autoincrement())
+  asociatieId  Int           @map("asociatie_id")
+  utilizatorId Int?          @map("utilizator_id") // null = emisa automat de planificator
+  abonamentId  Int?          @map("abonament_id")
+  tip          TipComanda
+  planId       Int?          @map("plan_id")
+  pachetId     Int?          @map("pachet_id")
+  suma         Decimal       @db.Decimal(10, 2)
+  status       StatusComanda @default(IN_ASTEPTARE)
+  referinta    String        @unique // ex. SIM-2026-000123
+  achitataLa   DateTime?     @map("achitata_la")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  asociatie  Asociatie          @relation(fields: [asociatieId], references: [id], onDelete: Cascade)
+  utilizator Utilizator?        @relation(fields: [utilizatorId], references: [id], onDelete: SetNull)
+  abonament  Abonament?         @relation(fields: [abonamentId], references: [id], onDelete: SetNull)
+  plan       Plan?              @relation(fields: [planId], references: [id], onDelete: SetNull)
+  pachet     PachetTokeni?      @relation(fields: [pachetId], references: [id], onDelete: SetNull)
+  tranzactii TranzactieTokeni[]
+
+  @@index([asociatieId, createdAt])
+  @@index([status])
+  @@map("comenzi_simulate")
+}
+
+// Laborator 3, Ex. 4: tabel nou adaugat in baza de date
+// Cod de reducere pentru plata simulata a unui abonament (plan_id NULL = valabil pentru orice plan platit)
+model CuponReducere {
+  id              Int      @id @default(autoincrement())
+  cod             String   @unique @db.VarChar(30)
+  procentReducere Int      @map("procent_reducere")
+  planId          Int?     @map("plan_id")
+  valabilPana     DateTime @map("valabil_pana") @db.Date
+  utilizariMaxime Int      @default(1) @map("utilizari_maxime")
+  utilizari       Int      @default(0)
+  activ           Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  plan Plan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@map("cupoane_reducere")
+}
