@@ -1,0 +1,20 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/cupoane">← Toate cupoanele</a></p>
+<div class="antet-pagina">
+  <div>
+    <h1 class="cod-mare"><%= cupon.cod %></h1>
+    <p class="subtitlu"><%- include('../partials/stare', { stare: cupon.stare }) %></p>
+  </div>
+  <a class="buton principal" href="/cupoane/edit/<%= cupon.id %>">Modifică</a>
+</div>
+<% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+
+<dl class="detalii">
+  <div><dt>Reducere</dt><dd><%= cupon.procentReducere %>%</dd></div>
+  <div><dt>Valabil pentru</dt><dd><%= cupon.planDenumire ? `Planul ${cupon.planDenumire}` : "Orice plan plătit" %></dd></div>
+  <div><dt>Valabil până la</dt><dd><%= cupon.valabilPana.split('-').reverse().join('.') %></dd></div>
+  <div><dt>Utilizări</dt><dd><%= cupon.utilizari %> din <%= cupon.utilizariMaxime %></dd></div>
+  <div><dt>Activ</dt><dd><%= cupon.activ ? "Da" : "Nu" %></dd></div>
+  <div><dt>Id</dt><dd><%= cupon.id %></dd></div>
+</dl>
+<%- include('../partials/sfarsit') %>

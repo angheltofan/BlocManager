@@ -1,0 +1,6 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/cupoane/<%= cupon.id %>">← Înapoi la cupon</a></p>
+<h1>Modifică cuponul</h1>
+<p class="subtitlu">Numărul de utilizări nu se modifică de aici: îl crește plata simulată.</p>
+<%- include('../partials/formular', { cupon, erori, optiuniPlan, actiune: `/cupoane/edit/${cupon.id}`, buton: 'Salvează modificările' }) %>
+<%- include('../partials/sfarsit') %>

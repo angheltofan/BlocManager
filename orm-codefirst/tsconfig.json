@@ -8,7 +8,16 @@
     "skipLibCheck": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["librarie-modele/src", "repository-codefirst/src", "repository-codefirst/prisma/seed.ts", "nivel-acces-date/src", "test-console-codefirst/src"]
+  "include": [
+    "librarie-modele/src",
+    "repository-codefirst/src",
+    "repository-codefirst/prisma/seed.ts",
+    "nivel-acces-date/src",
+    "test-console-codefirst/src",
+    "web-mvc/src"
+  ]
 }

@@ -5,4 +5,4 @@
  */
 export { PlanuriAccessor, type PlanCuAbonamente, type PlanCuCupoane, type VenitPlan } from "./PlanuriAccessor.ts";
 export { AbonamenteAccessor, type AbonamentCuPlan, type AbonamentSuspendat } from "./AbonamenteAccessor.ts";
-export { CupoaneAccessor, type CuponCuPlan } from "./CupoaneAccessor.ts";
+export { CupoaneAccessor, CodCuponDuplicat, type CuponCuPlan, type DateCupon } from "./CupoaneAccessor.ts";

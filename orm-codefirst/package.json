@@ -7,7 +7,8 @@
     "librarie-modele",
     "repository-codefirst",
     "nivel-acces-date",
-    "test-console-codefirst"
+    "test-console-codefirst",
+    "web-mvc"
   ],
   "scripts": {
     "generate": "npm run generate -w repository-codefirst",
@@ -15,7 +16,8 @@
     "migrate:status": "npm run migrate:status -w repository-codefirst",
     "db:seed": "npm run db:seed -w repository-codefirst",
     "start": "npm start -w test-console-codefirst",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "web": "npm start -w web-mvc"
   },
   "devDependencies": {
     "@types/node": "^20",

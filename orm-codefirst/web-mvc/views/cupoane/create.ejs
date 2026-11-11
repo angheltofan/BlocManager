@@ -1,0 +1,6 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/cupoane">← Toate cupoanele</a></p>
+<h1>Cupon nou</h1>
+<p class="subtitlu">Completează datele și apasă „Salvează”.</p>
+<%- include('../partials/formular', { cupon, erori, optiuniPlan, actiune: '/cupoane/create', buton: 'Salvează' }) %>
+<%- include('../partials/sfarsit') %>

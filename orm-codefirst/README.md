@@ -9,6 +9,7 @@ Baza de date `blockmanager_codefirst` este creata din modele, prin migrari.
 | `repository-codefirst` | Repository_CodeFirst | `BlockManagerContext` (derivat din PrismaClient, ca DbContext), `prisma.config.ts` (sirul de conexiune din `.env`), migrarile si seed-ul |
 | `nivel-acces-date` | NivelAccesDate (fost NivelAccesDate_DBFirst) | `PlanuriAccessor`, `AbonamenteAccessor`, `CupoaneAccessor` |
 | `test-console-codefirst` | aplicatia consola | afiseaza datele si compara eager / lazy loading |
+| `web-mvc` | proiectul Web MVC (Laboratorul 5) | Express + EJS: `CuponViewModel`, `CupoaneController` (Index, Details, Create, Edit), view-urile din `views/cupoane` |
 
 ## Comenzi (din `orm-codefirst`)
 
@@ -18,7 +19,8 @@ npm run migrate:dev                           # aplica migrarile pe baza de date
 npm run migrate:dev -- --name <nume>          # migrare noua, dupa o modificare in librarie-modele/prisma/schema
 npm run db:seed                               # datele de test din seed (planuri, cupoane_reducere)
 npm start                                     # aplicatia consola
-npm run typecheck                             # verificarea tipurilor in cele patru proiecte
+npm run typecheck                             # verificarea tipurilor in toate proiectele
+npm run web                                   # aplicatia web MVC, http://localhost:3001/cupoane
 ```
 
 ## Migrari
@@ -37,3 +39,17 @@ in `PlanuriAccessor.getCuCupoane()`:
 
 - `eager`: planurile si cupoanele se citesc odata (`include`), cu 2 interogari SQL;
 - `lazy`: se citesc doar planurile; cupoanele unui plan se citesc la primul acces, cu cate o interogare pe plan (1 + N).
+
+## Aplicatia web MVC (Laboratorul 5)
+
+`web-mvc` foloseste NivelAccesDate si LibrarieModele. Sirul de conexiune este in `web-mvc/.env`
+(`DATABASE_URL`, echivalentul `connectionStrings` din `web.config`), impreuna cu `PORT`.
+
+| Ruta | Actiune | Accessor |
+| --- | --- | --- |
+| `GET /cupoane` | Index | `CupoaneAccessor.getToate()` |
+| `GET /cupoane/:id` | Details | `CupoaneAccessor.getDupaId()` |
+| `GET /cupoane/create` | Create (formular gol) | `PlanuriAccessor.getToate()` pentru lista de selectie |
+| `POST /cupoane/create` | Create (salvare) | `CupoaneAccessor.adauga()` (AddEntity) |
+| `GET /cupoane/edit/:id` | Edit (formular completat) | `CupoaneAccessor.getDupaId()` |
+| `POST /cupoane/edit/:id` | Edit (salvare) | `CupoaneAccessor.modifica()` (UpdateEntity) |
