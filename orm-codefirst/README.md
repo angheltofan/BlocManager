@@ -9,7 +9,7 @@ Baza de date `blockmanager_codefirst` este creata din modele, prin migrari.
 | `repository-codefirst` | Repository_CodeFirst | `BlockManagerContext` (derivat din PrismaClient, ca DbContext), `prisma.config.ts` (sirul de conexiune din `.env`), migrarile si seed-ul |
 | `nivel-acces-date` | NivelAccesDate (fost NivelAccesDate_DBFirst) | `PlanuriAccessor`, `AbonamenteAccessor`, `CupoaneAccessor` |
 | `test-console-codefirst` | aplicatia consola | afiseaza datele si compara eager / lazy loading |
-| `web-mvc` | proiectul Web MVC (Laboratorul 5) | Express + EJS: `CuponViewModel`, `CupoaneController` (Index, Details, Create, Edit), view-urile din `views/cupoane` |
+| `web-mvc` | proiectul Web MVC (Laboratoarele 5-6) | Express + EJS: cupoane (Index, Details, Create, Edit) si abonamente (Index, Create) |
 
 ## Comenzi (din `orm-codefirst`)
 
@@ -29,6 +29,7 @@ npm run web                                   # aplicatia web MVC, http://localh
 2. `20261110150100_date_test`: insereaza planurile FREE, PRO si cupoanele BUNVENIT20, TOAMNA10.
 3. `20261110160000_modificari_planuri_cupoane_facturi`: `planuri.pret_anual`, `planuri.recomandat`,
    `cupoane_reducere.procent_reducere` din INTEGER in DECIMAL(5,2) si tabelul nou `facturi_simulate`.
+4. `20261111120000_date_asociatii_abonamente` (Laboratorul 6): 4 asociatii, 2 abonamente si comanda achitata SIM-2026-000001.
 
 Seed-ul ruleaza dupa migrari (`prisma db seed`): gaseste randurile migrarii si le actualizeaza, apoi adauga MAX, MAX15 si VARA5.
 
@@ -53,3 +54,14 @@ in `PlanuriAccessor.getCuCupoane()`:
 | `POST /cupoane/create` | Create (salvare) | `CupoaneAccessor.adauga()` (AddEntity) |
 | `GET /cupoane/edit/:id` | Edit (formular completat) | `CupoaneAccessor.getDupaId()` |
 | `POST /cupoane/edit/:id` | Edit (salvare) | `CupoaneAccessor.modifica()` (UpdateEntity) |
+
+## Abonamente (Laboratorul 6)
+
+A doua entitate MVC, cu chei straine catre `asociatii` si `planuri`. `AbonamentViewModel` aduna campuri din
+`abonamente`, `asociatii`, `planuri` si `comenzi_simulate`.
+
+| Ruta | Actiune | Accessor |
+| --- | --- | --- |
+| `GET /abonamente` | Index | `AbonamenteAccessor.getToateCuDetalii()` |
+| `GET /abonamente/create` | Create (formular cu listele asociatiilor si planurilor) | `getAsociatiiFaraAbonamentCurent()`, `PlanuriAccessor.getToate()` |
+| `POST /abonamente/create` | Create (salvare) | `AbonamenteAccessor.creeaza()`: abonament + comanda simulata, intr-o tranzactie |

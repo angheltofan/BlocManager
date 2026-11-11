@@ -1,9 +1,10 @@
 /**
- * WebMVC: aplicatia web MVC pentru cupoanele de reducere (Express + EJS).
+ * WebMVC: aplicatia web MVC (Express + EJS) pentru cupoanele de reducere (Laboratorul 5)
+ * si pentru abonamente (Laboratorul 6).
  *
- *   Model       src/models/CuponViewModel.ts
- *   Controller  src/controllers/CupoaneController.ts
- *   View-uri    views/cupoane/*.ejs
+ *   Modele       src/models/CuponViewModel.ts, src/models/AbonamentViewModel.ts
+ *   Controllere  src/controllers/CupoaneController.ts, src/controllers/AbonamenteController.ts
+ *   View-uri     views/cupoane/*.ejs, views/abonamente/*.ejs
  *
  * Sirul de conexiune la baza de date (DATABASE_URL) si portul (PORT) sunt in fisierul .env al proiectului,
  * echivalentul sectiunii connectionStrings din web.config. Contextul din Repository_CodeFirst il citeste de acolo.
@@ -13,6 +14,7 @@ import express, { type NextFunction, type Request, type Response } from "express
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { inchideContext } from "repository-codefirst";
+import { AbonamenteController } from "./controllers/AbonamenteController.ts";
 import { CupoaneController } from "./controllers/CupoaneController.ts";
 
 const radacina = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,6 +35,12 @@ app.post("/cupoane/create", cupoane.createPost);
 app.get("/cupoane/edit/:id", cupoane.editGet);
 app.post("/cupoane/edit/:id", cupoane.editPost);
 app.get("/cupoane/:id", cupoane.details);
+
+// Laboratorul 6: a doua entitate, Abonament (chei straine catre asociatii si planuri)
+const abonamente = new AbonamenteController();
+app.get("/abonamente", abonamente.index);
+app.get("/abonamente/create", abonamente.createGet);
+app.post("/abonamente/create", abonamente.createPost);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).render("eroare", { titlu: "Pagină inexistentă", mesaj: "Adresa cerută nu există." });

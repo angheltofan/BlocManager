@@ -43,7 +43,7 @@ body {
 a { color: var(--accent); }
 h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: -0.01em; }
 
-.continut { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+.continut { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
 main.continut { padding-top: 32px; padding-bottom: 48px; min-height: 70vh; }
 
 .bara { background: var(--suprafata); border-bottom: 1px solid var(--margine); }
@@ -116,3 +116,11 @@ tbody tr:last-child td { border-bottom: 0; }
 @media (max-width: 600px) {
   .detalii div { grid-template-columns: 1fr; gap: 2px; }
 }
+
+/* Laboratorul 6: Abonamente */
+.nume { display: block; font-weight: 550; }
+td .info { display: block; margin-top: 2px; }
+.fara-rupere { white-space: nowrap; }
+tr.rand-nou td { background: var(--accent-slab); }
+td.numar, td .cod { white-space: nowrap; }
+.optional { font-weight: 400; color: var(--estompat); font-size: 0.85rem; }

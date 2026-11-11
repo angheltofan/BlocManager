@@ -1,0 +1,60 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/abonamente">← Toate abonamentele</a></p>
+<h1>Abonament nou</h1>
+<p class="subtitlu">Planul Free pornește imediat. Pro și Max primesc o comandă simulată și rămân suspendate până la plată.</p>
+
+<% if (Object.keys(erori).length > 0) { %>
+  <p class="alerta rosu" role="alert">Abonamentul nu a fost creat. Corectează câmpurile marcate și salvează din nou.</p>
+<% } %>
+
+<% if (optiuniAsociatie.length === 0) { %>
+  <p class="gol">Toate asociațiile au deja un abonament activ sau suspendat. <a href="/abonamente">Înapoi la abonamente</a>.</p>
+<% } else { %>
+<form method="post" action="/abonamente/create" class="formular" novalidate>
+  <div class="camp <%= erori.asociatieId ? 'cu-eroare' : '' %>">
+    <label for="asociatieId">Asociația</label>
+    <select id="asociatieId" name="asociatieId" aria-describedby="asociatie-info" required>
+      <option value="">Alege asociația</option>
+      <% optiuniAsociatie.forEach(function (o) { %>
+        <option value="<%= o.valoare %>" <%= formular.asociatieId === o.valoare ? 'selected' : '' %>><%= o.text %></option>
+      <% }) %>
+    </select>
+    <p class="info" id="asociatie-info"><%= erori.asociatieId || "Apar doar asociațiile fără abonament activ sau suspendat." %></p>
+  </div>
+
+  <div class="camp <%= erori.planId ? 'cu-eroare' : '' %>">
+    <label for="planId">Planul</label>
+    <select id="planId" name="planId" aria-describedby="plan-info" required>
+      <option value="">Alege planul</option>
+      <% optiuniPlan.forEach(function (o) { %>
+        <option value="<%= o.valoare %>" <%= formular.planId === o.valoare ? 'selected' : '' %>><%= o.text %></option>
+      <% }) %>
+    </select>
+    <p class="info" id="plan-info"><%= erori.planId || "Abonamentul se plătește lunar; perioada este de o lună." %></p>
+  </div>
+
+  <div class="camp <%= erori.inceputPerioada ? 'cu-eroare' : '' %>">
+    <label for="inceputPerioada">Începutul perioadei</label>
+    <input type="date" id="inceputPerioada" name="inceputPerioada" value="<%= formular.inceputPerioada %>" aria-describedby="inceput-info" required>
+    <p class="info" id="inceput-info"><%= erori.inceputPerioada || "Perioada se termină după o lună." %></p>
+  </div>
+
+  <div class="camp <%= erori.codCupon ? 'cu-eroare' : '' %>">
+    <label for="codCupon">Cod de reducere <span class="optional">(opțional)</span></label>
+    <input type="text" id="codCupon" name="codCupon" value="<%= formular.codCupon %>" maxlength="30" autocomplete="off"
+           placeholder="ex. BUNVENIT20" aria-describedby="cupon-info">
+    <p class="info" id="cupon-info"><%= erori.codCupon || "Reduce suma comenzii simulate pentru Pro sau Max." %></p>
+  </div>
+
+  <div class="camp bifa">
+    <input type="checkbox" id="reinnoireAutomata" name="reinnoireAutomata" <%= formular.reinnoireAutomata ? 'checked' : '' %>>
+    <label for="reinnoireAutomata">Reînnoire automată <span class="info">(la finalul lunii se emite comanda următoare)</span></label>
+  </div>
+
+  <div class="actiuni">
+    <button type="submit" class="buton principal">Creează abonamentul</button>
+    <a class="buton" href="/abonamente">Renunță</a>
+  </div>
+</form>
+<% } %>
+<%- include('../partials/sfarsit') %>
