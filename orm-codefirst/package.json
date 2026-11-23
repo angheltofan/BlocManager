@@ -1,14 +1,15 @@
 {
   "name": "demo-orm-codefirst",
   "private": true,
-  "description": "BlockManager - Laborator 4: ORM Code First (Prisma migrate)",
+  "description": "BlockManager - Laboratoarele 4-7: ORM Code First, MVC si API",
   "type": "module",
   "workspaces": [
     "librarie-modele",
     "repository-codefirst",
     "nivel-acces-date",
     "test-console-codefirst",
-    "web-mvc"
+    "web-mvc",
+    "web-api"
   ],
   "scripts": {
     "generate": "npm run generate -w repository-codefirst",
@@ -17,7 +18,8 @@
     "db:seed": "npm run db:seed -w repository-codefirst",
     "start": "npm start -w test-console-codefirst",
     "typecheck": "tsc -p tsconfig.json",
-    "web": "npm start -w web-mvc"
+    "web": "npm start -w web-mvc",
+    "api": "npm start -w web-api"
   },
   "devDependencies": {
     "@types/node": "^20",

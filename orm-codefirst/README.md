@@ -10,6 +10,7 @@ Baza de date `blockmanager_codefirst` este creata din modele, prin migrari.
 | `nivel-acces-date` | NivelAccesDate (fost NivelAccesDate_DBFirst) | `PlanuriAccessor`, `AbonamenteAccessor`, `CupoaneAccessor` |
 | `test-console-codefirst` | aplicatia consola | afiseaza datele si compara eager / lazy loading |
 | `web-mvc` | proiectul Web MVC (Laboratoarele 5-6) | Express + EJS: cupoane (Index, Details, Create, Edit) si abonamente (Index, Create) |
+| `web-api` | proiectul Web API (Laboratorul 7) | Express, JSON: Get, Get(id), Post, Put pentru cupoane; DTO-uri si AutoMapper |
 
 ## Comenzi (din `orm-codefirst`)
 
@@ -21,6 +22,7 @@ npm run db:seed                               # datele de test din seed (planuri
 npm start                                     # aplicatia consola
 npm run typecheck                             # verificarea tipurilor in toate proiectele
 npm run web                                   # aplicatia web MVC, http://localhost:3001/cupoane
+npm run api                                   # API-ul REST, http://localhost:3002/api/cupoane
 ```
 
 ## Migrari
@@ -65,3 +67,18 @@ A doua entitate MVC, cu chei straine catre `asociatii` si `planuri`. `AbonamentV
 | `GET /abonamente` | Index | `AbonamenteAccessor.getToateCuDetalii()` |
 | `GET /abonamente/create` | Create (formular cu listele asociatiilor si planurilor) | `getAsociatiiFaraAbonamentCurent()`, `PlanuriAccessor.getToate()` |
 | `POST /abonamente/create` | Create (salvare) | `AbonamenteAccessor.creeaza()`: abonament + comanda simulata, intr-o tranzactie |
+
+## API (Laboratorul 7)
+
+`web-api` foloseste NivelAccesDate si LibrarieModele; sirul de conexiune este in `web-api/.env` (`DATABASE_URL`, `PORT=3002`).
+Raspunsurile sunt `CuponDto`, iar body-ul cererilor POST/PUT este `CuponInputDto`; conversia din si in modelul
+bazei de date o face AutoMapper (`@automapper/core` 8.8.1, strategia `pojos`), in `src/mapare/mapper.ts`.
+
+| Endpoint | Raspuns |
+| --- | --- |
+| `GET /api/cupoane` | 200, lista de `CuponDto` |
+| `GET /api/cupoane/:id` | 200 sau 404 |
+| `POST /api/cupoane` | 201 + `Location`, 400 (erori pe campuri), 409 (cod existent) |
+| `PUT /api/cupoane/:id` | 200, 400, 404 sau 409 |
+
+Colectia Postman: `web-api/BlockManager_API.postman_collection.json` (Import, apoi Run collection).

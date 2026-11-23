@@ -1,0 +1,22 @@
+{
+  "name": "web-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebAPI: API REST (Express) pentru entitatea CuponReducere, cu DTO-uri si AutoMapper",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@automapper/core": "8.8.1",
+    "@automapper/pojos": "8.8.1",
+    "dotenv": "^17.2.3",
+    "express": "5.1.0",
+    "librarie-modele": "1.0.0",
+    "nivel-acces-date": "1.0.0",
+    "repository-codefirst": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.3"
+  }
+}

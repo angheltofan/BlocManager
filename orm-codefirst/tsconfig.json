@@ -18,6 +18,7 @@
     "repository-codefirst/prisma/seed.ts",
     "nivel-acces-date/src",
     "test-console-codefirst/src",
-    "web-mvc/src"
+    "web-mvc/src",
+    "web-api/src"
   ]
 }
