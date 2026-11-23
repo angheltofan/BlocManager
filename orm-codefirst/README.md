@@ -71,3 +71,21 @@ Colectia Postman: `web-api/BlockManager_API.postman_collection.json`.
 
 Seed-ul (`npm run db:seed`) adauga planul MAX si cupoanele MAX15, VARA5. Comenzi utile: `npm run typecheck`,
 `npm run migrate:deploy`, `npm run migrate:dev -- --name <nume>` (dupa o modificare in `librarie-modele/prisma/schema`).
+
+## Publicare pe IIS (Laboratorul 8)
+
+Din PowerShell deschis ca Administrator:
+
+```powershell
+cd D:\BlocManager\orm-codefirst\publicare
+.\publica.ps1
+```
+
+Scriptul copiaza aplicatia in `C:\BlockManager\aplicatie`, o porneste cu pm2, activeaza IIS (URL Rewrite + ARR) si creeaza site-urile:
+
+| Adresa | Aplicatia | Proces Node |
+| --- | --- | --- |
+| http://proiect-mvc-demo.com | MVC (admin) | localhost:3001 |
+| http://proiect-api-demo.com | WebAPI, sectiunea de utilizator (`/`) si pagina admin `/admin/cupoane.html` | localhost:3002 |
+
+Numele de host sunt trecute in `C:\Windows\System32\drivers\etc\hosts`. Rezultatul verificarii: `laboratoare\laborator8\verificare_publicare.txt`.

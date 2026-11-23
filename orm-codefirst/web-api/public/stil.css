@@ -134,3 +134,36 @@ td.minus { color: var(--rosu); }
 .bara-dreapta { flex-wrap: wrap; }
 .bara select { max-width: min(320px, 70vw); }
 .legatura-admin { white-space: nowrap; }
+.navigare { display: flex; gap: 16px; align-items: center; }
+.navigare a { color: var(--estompat); text-decoration: none; font-size: 0.92rem; }
+.navigare a[aria-current="page"] { color: var(--text); font-weight: 600; }
+
+/* Laboratorul 8: front-end CRUD cupoane */
+code { font: 0.85em ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--fundal); border: 1px solid var(--margine); padding: 0 4px; border-radius: 4px; }
+.bifa-filtru { display: inline-flex; align-items: center; gap: 8px; margin: 16px 0 4px; font-size: 0.92rem; }
+.bifa-filtru input { width: 17px; height: 17px; accent-color: var(--accent); }
+.legatura { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.legatura.pericol, .legatura.pericol:hover { color: var(--rosu); }
+.legaturi { text-align: right; white-space: nowrap; }
+.legaturi .legatura { margin-left: 12px; }
+button.cod { text-decoration: none; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-weight: 600; }
+tr.rand-sters td { color: var(--estompat); }
+tr.rand-sters button.cod { color: var(--estompat); text-decoration: line-through; }
+.eticheta.gri { background: var(--fundal); color: var(--estompat); }
+.eticheta.rosu { background: var(--rosu-slab); color: var(--rosu); }
+.detalii-cupon { margin-top: 20px; }
+.grila-detalii { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px 20px; margin: 14px 0 0; }
+.grila-detalii dt { font-size: 0.8rem; color: var(--estompat); }
+.grila-detalii dd { margin: 2px 0 0; font-weight: 550; }
+dialog { border: 1px solid var(--margine); border-radius: 12px; padding: 0; background: var(--suprafata); color: var(--text); width: min(460px, calc(100% - 32px)); }
+dialog::backdrop { background: rgb(0 0 0 / 0.35); }
+.formular-api { padding: 20px; }
+.formular-api h2 { margin-bottom: 12px; }
+.formular-api .camp { margin-bottom: 12px; }
+.formular-api label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+.formular-api .bifa-filtru { display: inline-flex; margin: 0 0 6px; }
+.formular-api input:not([type=checkbox]), .formular-api select { width: 100%; min-height: 38px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--margine); background: var(--fundal); color: var(--text); font: inherit; }
+.eroare-camp { color: var(--rosu); font-size: 0.85rem; margin-top: 3px; min-height: 0; }
+.alerta-form { background: var(--rosu-slab); color: var(--rosu); padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; }
+.actiuni-dialog { display: flex; gap: 10px; margin-top: 14px; }
+.buton.pericol-plin { background: var(--rosu); border-color: var(--rosu); color: #fff; }

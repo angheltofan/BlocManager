@@ -21,10 +21,13 @@ const container = creeazaContainer("api");
 const { logger, magistralaEvenimente } = container.cradle;
 
 const app = express();
+app.set("etag", false); // fara raspunsuri 304 din cache pentru datele API-ului
 app.use(express.json()); // body-ul cererilor POST si PUT, in format JSON
 app.use(express.static(path.resolve(import.meta.dirname, "../public"))); // sectiunea de utilizator
 
 app.use("/api", (req, res, next) => {
+  // datele se schimba la fiecare operatie: nici browserul, nici proxy-ul IIS (ARR) nu le pastreaza in cache
+  res.set("Cache-Control", "no-store");
   const start = Date.now();
   res.on("finish", () => logger.info(`${req.method} ${req.originalUrl}`, { status: res.statusCode, ms: Date.now() - start }));
   next();
@@ -49,6 +52,12 @@ app.get("/api/cupoane/:id", cupoane.getById);
 app.post("/api/cupoane", cupoane.post);
 app.put("/api/cupoane/:id", cupoane.put);
 app.delete("/api/cupoane/:id", cupoane.delete);
+app.post("/api/cupoane/:id/restaurare", cupoane.restaureaza);
+
+// adresele publice ale celor doua aplicatii (localhost in dezvoltare, numele de host dupa publicare)
+app.get("/api/config", (_req, res) => {
+  res.json({ adresaAdmin: process.env.ADRESA_ADMIN ?? "http://localhost:3001" });
+});
 
 app.use("/api", (_req: Request, res: Response) => {
   res.status(404).json({ eroare: "Endpoint inexistent." });

@@ -12,6 +12,7 @@ import { laDateCupon, laDto, laDtoLista } from "../mapare/mapper.ts";
  *   POST   /api/cupoane        Post         adauga un cupon (body JSON)                             201 | 400 | 409
  *   PUT    /api/cupoane/:id    Put          modifica un cupon (body JSON)                           200 | 400 | 404 | 409
  *   DELETE /api/cupoane/:id    Delete       stergere logica                                         204 | 404
+ *   POST   /api/cupoane/:id/restaurare     anularea stergerii logice                               200 | 404
  *
  * Raspunsurile sunt CuponDto (nu entitatea din baza de date); conversia o face AutoMapper.
  * Regulile (cod unic, utilizari, stergere logica) sunt in ServiciuCupoane.
@@ -52,6 +53,12 @@ export class CupoaneController {
   delete = async (req: Request, res: Response) => {
     await this.cupoane.sterge(citesteId(req));
     res.status(204).end();
+  };
+
+  restaureaza = async (req: Request, res: Response) => {
+    const id = citesteId(req);
+    await this.cupoane.restaureaza(id);
+    res.json(laDto(await this.cupoane.getDupaId(id)));
   };
 
   /** Id-ul planului dupa cod; null = orice plan platit. */

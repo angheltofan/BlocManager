@@ -75,7 +75,7 @@ Reguli de lucru:
 - Erorile de business sunt `EroareBusiness(cod, mesaj, camp?)`; codul dă statusul HTTP (NEGASIT 404, DATE_INVALIDE 400, CONFLICT 409, ABONAMENT_INACTIV 403, PLAN_NEPERMIS 403, SOLD_INSUFICIENT 402). MVC le afișează în formular sau în `eroare.ejs`, API-ul le întoarce ca JSON.
 - Evenimentele se publică după tranzacție (`magistralaEvenimente.publica`), iar consumatorii rulează asincron și izolat. `PlataEfectuata` are 3 consumatori: factură, notificare, audit (`logs/audit-plati.log`).
 - Fiecare proces (admin, API) are containerul lui, deci și cache-ul lui; nu există încă editare de planuri, deci cache-ul de 10 minute nu are nevoie de invalidare între procese.
-- Instalare: `orm-codefirst\instalare.ps1`; pornire: `orm-codefirst\porneste.ps1`. Verificare înainte de livrare: `npm run typecheck` din `orm-codefirst`.
+- Instalare: `orm-codefirst\instalare.ps1`; pornire: `orm-codefirst\porneste.ps1`; publicare pe IIS (Lab 8): `orm-codefirst\publicare\publica.ps1`, rulat ca Administrator. Verificare înainte de livrare: `npm run typecheck` din `orm-codefirst`.
 
 Setarea `INCARCARE_RELATII` din `.env` (`eager` sau `lazy`) alege cum se încarcă relația Plan → CuponReducere. O modificare de model se face în `librarie-modele/prisma/schema`, apoi `npm run migrate:dev -- --name <nume>` din `orm-codefirst`.
 
@@ -184,6 +184,7 @@ Toată logica de tokeni și abonament stă în `orm-codefirst/servicii` (regulil
 - Laboratorul 5: aplicația MVC `orm-codefirst/web-mvc` pentru cupoane (Index, Details, Create, Edit);
 - Laboratorul 6: abonamente în `web-mvc` (Index, Create): crearea abonamentului emite comanda simulată și aplică cuponul;
 - Laboratorul 7: API-ul `orm-codefirst/web-api` pentru cupoane (Get, Get(id), Post, Put), cu DTO-uri și AutoMapper;
+- Laboratorul 8: pagina de administrare `web-api/public/admin/cupoane.html` (CRUD complet prin API, inclusiv DELETE și restaurare; legată din meniul admin, nu din secțiunea de utilizator) și publicarea pe IIS: copia din `C:\BlockManager\aplicatie` rulează cu pm2 (`publicare/ecosystem.config.cjs`), iar IIS (URL Rewrite + ARR, `publicare/iis/*/web.config`) o servește pe `http://proiect-mvc-demo.com` (MVC) și `http://proiect-api-demo.com` (API), nume trecute în fișierul hosts. `GET /api/config` dă pagina de utilizator adresa admin-ului (`ADRESA_ADMIN`);
 - Proiectul final, în `orm-codefirst`: nivelul Services (plată simulată, alocare și debitare tokeni, upgrade/downgrade, pachete, cupoane, job zilnic), DI, cache, loguri, ștergere logică, evenimente cu 3 consumatori, admin CRUD complet, secțiunea de utilizator prin API, documentația finală (`laboratoare/proiect`).
 
 **Posibile extinderi (nu sunt cerute de grilă):**

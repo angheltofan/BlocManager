@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cupoane prin API · BlockManager admin</title>
+  <link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+  <header class="bara">
+    <div class="continut bara-interior">
+      <span class="marca">BlockManager <span class="marca-sectiune">admin</span></span>
+      <nav class="navigare" aria-label="Navigare">
+        <a data-admin="/abonamente" href="http://localhost:3001/abonamente">Abonamente</a>
+        <a data-admin="/cupoane" href="http://localhost:3001/cupoane">Cupoane</a>
+        <a href="/admin/cupoane.html" aria-current="page">Cupoane prin API</a>
+        <a href="/">Pagina utilizator ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="continut">
+    <div class="antet-sectiune">
+      <div>
+        <h1>Cupoane de reducere</h1>
+        <p class="estompat">Pagină de administrare care folosește doar API-ul: <code>GET</code>, <code>POST</code>, <code>PUT</code> și <code>DELETE</code> pe <code>/api/cupoane</code>.</p>
+      </div>
+      <button class="buton principal" id="nou">Cupon nou</button>
+    </div>
+
+    <label class="bifa-filtru"><input type="checkbox" id="sterse"> Arată și cupoanele șterse</label>
+
+    <div class="tabel-container">
+      <table>
+        <thead>
+          <tr><th>Cod</th><th class="numar">Reducere</th><th>Valabil pentru</th><th>Valabil până la</th><th class="numar">Utilizări</th><th>Stare</th><th><span class="ascuns">Acțiuni</span></th></tr>
+        </thead>
+        <tbody id="lista"><tr><td colspan="7" class="estompat">Se încarcă…</td></tr></tbody>
+      </table>
+    </div>
+
+    <section id="detalii" class="card detalii-cupon" hidden aria-live="polite"></section>
+  </main>
+
+  <dialog id="formular-dialog" aria-labelledby="formular-titlu">
+    <form id="formular" class="formular-api" novalidate>
+      <h2 id="formular-titlu">Cupon nou</h2>
+      <p class="alerta-form" id="formular-eroare" hidden></p>
+      <div class="camp"><label for="f-cod">Cod</label><input id="f-cod" name="cod" maxlength="30" autocomplete="off" placeholder="ex. IARNA25" required><p class="eroare-camp" data-eroare="cod"></p></div>
+      <div class="camp"><label for="f-procent">Reducere (%)</label><input id="f-procent" name="reducereProcent" type="number" step="0.01" min="0.01" max="100" required><p class="eroare-camp" data-eroare="reducereProcent"></p></div>
+      <div class="camp"><label for="f-plan">Valabil pentru</label><select id="f-plan" name="planCod"></select><p class="eroare-camp" data-eroare="planCod"></p></div>
+      <div class="camp"><label for="f-data">Valabil până la</label><input id="f-data" name="valabilPana" type="date" required><p class="eroare-camp" data-eroare="valabilPana"></p></div>
+      <div class="camp"><label for="f-max">Utilizări maxime</label><input id="f-max" name="utilizariMaxime" type="number" min="1" step="1" required><p class="eroare-camp" data-eroare="utilizariMaxime"></p></div>
+      <label class="bifa-filtru"><input id="f-activ" name="activ" type="checkbox" checked> Activ</label>
+      <div class="actiuni-dialog">
+        <button type="submit" class="buton principal" id="salveaza">Salvează</button>
+        <button type="button" class="buton" data-inchide>Renunță</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="stergere-dialog" aria-labelledby="stergere-titlu">
+    <div class="formular-api">
+      <h2 id="stergere-titlu">Ștergi cuponul?</h2>
+      <p class="estompat" id="stergere-text"></p>
+      <div class="actiuni-dialog">
+        <button type="button" class="buton pericol-plin" id="confirma-stergere">Șterge</button>
+        <button type="button" class="buton" data-inchide>Renunță</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="mesaj" class="mesaj" role="status" aria-live="polite" hidden></div>
+  <footer class="continut subsol">BlockManager · secțiunea de administrare · front-end pentru API-ul de cupoane (Laboratorul 8)</footer>
+  <script src="/admin/cupoane.js"></script>
+</body>
+</html>

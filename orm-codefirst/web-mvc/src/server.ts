@@ -32,6 +32,8 @@ app.use(express.static(path.join(radacina, "public")));
 
 // logul fiecarei cereri HTTP (metoda, adresa, status, durata)
 app.use((req, res, next) => {
+  // paginile admin arata date care se schimba: nu se pastreaza in cache (browser sau proxy-ul IIS)
+  if (!req.path.endsWith(".css")) res.set("Cache-Control", "no-store");
   const start = Date.now();
   res.on("finish", () => {
     if (!req.path.endsWith(".css")) logger.info(`${req.method} ${req.originalUrl}`, { status: res.statusCode, ms: Date.now() - start });

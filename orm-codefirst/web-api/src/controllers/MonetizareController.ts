@@ -20,7 +20,7 @@ import { actiuneDto, pachetDto, planDto, rezultatPlanDto, stareDto } from "../dt
  * Toata logica este in nivelul Services; controller-ul doar citeste cererea si converteste raspunsul in DTO.
  */
 export class MonetizareController {
-  private readonly s: Pick<Dependente, "serviciuPlanuri" | "serviciuAbonamente" | "serviciuComenzi" | "serviciuPlati" | "serviciuTokeni" | "serviciuCupoane" | "db">;
+  private readonly s: Pick<Dependente, "serviciuPlanuri" | "serviciuAbonamente" | "serviciuComenzi" | "serviciuPlati" | "serviciuTokeni" | "serviciuCupoane" | "magistralaEvenimente" | "db">;
 
   constructor(dep: Dependente) {
     this.s = dep;
@@ -76,6 +76,9 @@ export class MonetizareController {
 
   plateste = async (req: Request, res: Response) => {
     const p = await this.s.serviciuPlati.plateste(id(req));
+    // consumatorii evenimentului PlataEfectuata (factura, notificare, audit) ruleaza separat de tranzactie;
+    // raspunsul asteapta sa termine, ca pagina care se reincarca dupa plata sa vada deja factura
+    await this.s.magistralaEvenimente.asteaptaConsumatorii();
     res.json({
       mesaj: p.tip === "ABONAMENT"
         ? `Plata ${p.referinta} (${p.suma.replace(".", ",")} lei) a fost înregistrată. ${p.descriere} este activ: ${p.tokeniAlocati} tokeni alocați.`

@@ -172,6 +172,7 @@ async function verificaCupon() {
 }
 
 async function porneste() {
+  api("/api/config").then((c) => document.querySelectorAll("[data-admin]").forEach((a) => (a.href = `${c.adresaAdmin}/abonamente`))).catch(() => {});
   [stare.planuri, stare.pachete, stare.actiuni] = await Promise.all([api("/api/planuri"), api("/api/pachete"), api("/api/actiuni")]);
   const asociatii = await api("/api/asociatii");
   let salvat = null;
@@ -213,5 +214,17 @@ document.addEventListener("click", (e) => {
   else if (b.dataset.pachet) void operatie(b, () => api(`/api/asociatii/${id}/pachete`, "POST", { pachetId: Number(b.dataset.pachet) }));
   else if (b.dataset.actiune) void operatie(b, () => api(`/api/asociatii/${id}/actiuni`, "POST", { cod: b.dataset.actiune }));
 });
+
+// Actualizare automata: datele se pot schimba si din afara paginii (admin, jobul zilnic, alt tab),
+// asa ca starea se reincarca la 10 secunde cat timp pagina e vizibila si imediat la revenirea in tab.
+let ocupat = false;
+async function reimprospateaza() {
+  if (ocupat || document.hidden || !stare.asociatieId || document.querySelector("button[disabled][data-plan], button[disabled][data-plata], button[disabled][data-pachet], button[disabled][data-actiune], button[disabled][data-anulare]")) return;
+  ocupat = true;
+  try { await incarcaStare(); } catch { /* serverul poate fi repornit; se reincearca la urmatorul pas */ } finally { ocupat = false; }
+}
+setInterval(() => void reimprospateaza(), 10000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) void reimprospateaza(); });
+window.addEventListener("focus", () => void reimprospateaza());
 
 porneste().catch((e) => mesaj(`Nu am putut încărca datele: ${e.message}`, "eroare"));
