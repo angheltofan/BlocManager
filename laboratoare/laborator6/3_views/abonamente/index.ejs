@@ -1,0 +1,57 @@
+<%- include('../partials/inceput', { titlu }) %>
+<%
+  const STARE = { ACTIV: ["Activ", "verde"], SUSPENDAT: ["Suspendat până la plată", "galben"], ANULAT: ["Anulat", "gri"], EXPIRAT: ["Expirat", "gri"] };
+  const COMANDA = { IN_ASTEPTARE: "în așteptarea plății", ACHITATA: "achitată", ANULATA: "anulată" };
+%>
+<div class="antet-pagina">
+  <div>
+    <h1>Abonamente</h1>
+    <p class="subtitlu">Planul fiecărei asociații. Pro și Max pot fi folosite doar după plata comenzii simulate.</p>
+  </div>
+  <a class="buton principal" href="/abonamente/create">Abonament nou</a>
+</div>
+<% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+
+<% if (abonamente.length === 0) { %>
+  <p class="gol">Nu există încă niciun abonament. <a href="/abonamente/create">Creează primul abonament</a>.</p>
+<% } else { %>
+<div class="tabel-container">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Asociație</th>
+        <th scope="col">Plan</th>
+        <th scope="col" class="numar">Preț / lună</th>
+        <th scope="col" class="numar">Tokeni / lună</th>
+        <th scope="col">Perioadă</th>
+        <th scope="col">Stare</th>
+        <th scope="col">Comandă simulată</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% abonamente.forEach(function (a) { %>
+      <tr class="<%= a.id === nouId ? 'rand-nou' : '' %>">
+        <td>
+          <span class="nume"><%= a.asociatieDenumire %></span>
+          <span class="info"><%= a.asociatieAdresa %></span>
+        </td>
+        <td><%= a.planDenumire %><% if (!a.reinnoireAutomata) { %><span class="info">fără reînnoire automată</span><% } %></td>
+        <td class="numar"><%= a.pretLunar %> lei</td>
+        <td class="numar"><%= a.tokeniLunari %></td>
+        <td class="fara-rupere"><%= a.inceputPerioada %> – <%= a.sfarsitPerioada %></td>
+        <td><span class="eticheta <%= STARE[a.status][1] %>"><%= STARE[a.status][0] %></span></td>
+        <td>
+          <% if (a.comandaReferinta) { %>
+            <span class="cod"><%= a.comandaReferinta %></span>
+            <span class="info"><%= a.comandaSuma %> lei, <%= COMANDA[a.comandaStatus] %></span>
+          <% } else { %>
+            <span class="info">fără plată (plan gratuit)</span>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+<%- include('../partials/sfarsit') %>

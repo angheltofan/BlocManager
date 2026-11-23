@@ -1,0 +1,53 @@
+<%# Formularul comun pentru Create si Edit. Primeste: cupon (CuponViewModel), erori, optiuniPlan, actiune, buton. %>
+<% if (erori.general) { %><p class="alerta rosu" role="alert"><%= erori.general %></p><% } %>
+<% if (Object.keys(erori).length > 0) { %>
+  <p class="alerta rosu" role="alert">Formularul are erori. Corectează câmpurile marcate și salvează din nou.</p>
+<% } %>
+<form method="post" action="<%= actiune %>" class="formular" novalidate>
+  <div class="camp <%= erori.cod ? 'cu-eroare' : '' %>">
+    <label for="cod">Cod</label>
+    <input type="text" id="cod" name="cod" value="<%= cupon.cod %>" maxlength="30" autocomplete="off"
+           placeholder="ex. IARNA25" aria-describedby="cod-info" required>
+    <p class="info" id="cod-info"><%= erori.cod || "Litere mari și cifre; proprietarii îl introduc la plata abonamentului." %></p>
+  </div>
+
+  <div class="camp <%= erori.procentReducere ? 'cu-eroare' : '' %>">
+    <label for="procentReducere">Reducere (%)</label>
+    <input type="text" id="procentReducere" name="procentReducere" value="<%= cupon.procentReducere %>"
+           inputmode="decimal" placeholder="ex. 15 sau 7,5" aria-describedby="procent-info" required>
+    <p class="info" id="procent-info"><%= erori.procentReducere || "Între 0,01 și 100, cu cel mult două zecimale." %></p>
+  </div>
+
+  <div class="camp <%= erori.planId ? 'cu-eroare' : '' %>">
+    <label for="planId">Valabil pentru</label>
+    <select id="planId" name="planId" aria-describedby="plan-info">
+      <% optiuniPlan.forEach(function (o) { %>
+        <option value="<%= o.valoare %>" <%= String(cupon.planId ?? '') === o.valoare ? 'selected' : '' %>><%= o.text %></option>
+      <% }) %>
+    </select>
+    <p class="info" id="plan-info"><%= erori.planId || "Planul Free nu apare: nu are preț de redus." %></p>
+  </div>
+
+  <div class="camp <%= erori.valabilPana ? 'cu-eroare' : '' %>">
+    <label for="valabilPana">Valabil până la</label>
+    <input type="date" id="valabilPana" name="valabilPana" value="<%= cupon.valabilPana %>" aria-describedby="data-info" required>
+    <p class="info" id="data-info"><%= erori.valabilPana || "Inclusiv ziua aleasă." %></p>
+  </div>
+
+  <div class="camp <%= erori.utilizariMaxime ? 'cu-eroare' : '' %>">
+    <label for="utilizariMaxime">Utilizări maxime</label>
+    <input type="number" id="utilizariMaxime" name="utilizariMaxime" value="<%= cupon.utilizariMaxime %>" min="1" step="1"
+           aria-describedby="utilizari-info" required>
+    <p class="info" id="utilizari-info"><%= erori.utilizariMaxime || (cupon.id ? `Folosit până acum de ${cupon.utilizari} ori.` : "De câte ori poate fi folosit în total.") %></p>
+  </div>
+
+  <div class="camp bifa">
+    <input type="checkbox" id="activ" name="activ" <%= cupon.activ ? 'checked' : '' %>>
+    <label for="activ">Activ <span class="info">(un cupon inactiv nu poate fi folosit la plată)</span></label>
+  </div>
+
+  <div class="actiuni">
+    <button type="submit" class="buton principal"><%= buton %></button>
+    <a class="buton" href="<%= cupon.id ? `/cupoane/${cupon.id}` : '/cupoane' %>">Renunță</a>
+  </div>
+</form>

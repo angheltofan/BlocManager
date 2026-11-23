@@ -1,0 +1,43 @@
+<%- include('../partials/inceput', { titlu }) %>
+<div class="antet-pagina">
+  <div>
+    <h1>Cupoane de reducere</h1>
+    <p class="subtitlu">Reduc prețul plății simulate a abonamentului Pro sau Max.</p>
+  </div>
+  <a class="buton principal" href="/cupoane/create">Cupon nou</a>
+</div>
+<% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+
+<% if (cupoane.length === 0) { %>
+  <p class="gol">Nu există încă niciun cupon. <a href="/cupoane/create">Adaugă primul cupon</a>.</p>
+<% } else { %>
+<div class="tabel-container">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Cod</th>
+        <th scope="col" class="numar">Reducere</th>
+        <th scope="col">Valabil pentru</th>
+        <th scope="col">Valabil până la</th>
+        <th scope="col" class="numar">Utilizări</th>
+        <th scope="col">Stare</th>
+        <th scope="col"><span class="ascuns">Acțiuni</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% cupoane.forEach(function (c) { %>
+      <tr>
+        <td><a class="cod" href="/cupoane/<%= c.id %>"><%= c.cod %></a></td>
+        <td class="numar"><%= c.procentReducere %>%</td>
+        <td><%= c.planDenumire ? `Planul ${c.planDenumire}` : "Orice plan plătit" %></td>
+        <td><%= c.valabilPana.split('-').reverse().join('.') %></td>
+        <td class="numar"><%= c.utilizari %> / <%= c.utilizariMaxime %></td>
+        <td><%- include('../partials/stare', { stare: c.stare }) %></td>
+        <td class="legaturi"><a href="/cupoane/<%= c.id %>">Detalii</a> <a href="/cupoane/edit/<%= c.id %>">Modifică</a></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+<%- include('../partials/sfarsit') %>
