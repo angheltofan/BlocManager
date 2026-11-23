@@ -3,3 +3,6 @@ node_modules
 !.env.example
 # clientul generat de "prisma generate" (ruleaza automat la npm install)
 librarie-modele/src/generated
+
+# loguri scrise de aplicatie
+logs/

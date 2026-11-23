@@ -19,5 +19,5 @@ export type CuponDto = {
   utilizariMaxime: number;
   utilizariRamase: number;
   activ: boolean;
-  stare: "ACTIV" | "INACTIV" | "EXPIRAT" | "EPUIZAT";
+  stare: "ACTIV" | "INACTIV" | "EXPIRAT" | "EPUIZAT" | "STERS";
 };

@@ -1,0 +1,38 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/abonamente/<%= a.id %>">← Înapoi la abonament</a></p>
+<h1>Modifică abonamentul</h1>
+<p class="subtitlu"><%= a.asociatie.denumire %> · planul <%= a.plan.denumire %> · <%- include('_stare', { stare: a.status }) %></p>
+
+<% if (Object.keys(erori).length > 0) { %>
+  <p class="alerta rosu" role="alert"><%= erori.general || "Modificările nu au fost salvate. Corectează câmpurile marcate." %></p>
+<% } %>
+
+<form method="post" action="/abonamente/edit/<%= a.id %>" class="formular" novalidate>
+  <div class="camp <%= erori.planUrmatorId ? 'cu-eroare' : '' %>">
+    <label for="planUrmatorId">Plan pentru perioada următoare</label>
+    <select id="planUrmatorId" name="planUrmatorId" aria-describedby="plan-info">
+      <option value="">Rămâne pe planul <%= a.plan.denumire %></option>
+      <% optiuniPlan.forEach(function (o) { %>
+        <option value="<%= o.valoare %>" <%= formular.planUrmatorId === o.valoare ? 'selected' : '' %>><%= o.text %></option>
+      <% }) %>
+    </select>
+    <p class="info" id="plan-info"><%= erori.planUrmatorId || "Jobul zilnic aplică planul ales la sfârșitul perioadei." %></p>
+  </div>
+
+  <div class="camp <%= erori.sfarsitPerioada ? 'cu-eroare' : '' %>">
+    <label for="sfarsitPerioada">Sfârșitul perioadei</label>
+    <input type="date" id="sfarsitPerioada" name="sfarsitPerioada" value="<%= formular.sfarsitPerioada %>" aria-describedby="sfarsit-info" required>
+    <p class="info" id="sfarsit-info"><%= erori.sfarsitPerioada || `Perioada a început la ${a.inceputPerioada}. O dată de azi sau din trecut face ca jobul zilnic să o închidă la următoarea rulare.` %></p>
+  </div>
+
+  <div class="camp bifa">
+    <input type="checkbox" id="reinnoireAutomata" name="reinnoireAutomata" <%= formular.reinnoireAutomata ? 'checked' : '' %>>
+    <label for="reinnoireAutomata">Reînnoire automată <span class="optional">(fără ea, abonamentul expiră la sfârșitul perioadei)</span></label>
+  </div>
+
+  <div class="actiuni">
+    <button type="submit" class="buton principal">Salvează modificările</button>
+    <a class="buton" href="/abonamente/<%= a.id %>">Renunță</a>
+  </div>
+</form>
+<%- include('../partials/sfarsit') %>

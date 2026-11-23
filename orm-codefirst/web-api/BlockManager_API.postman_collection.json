@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "fca45701-47ef-46c8-8a94-7d6a675b6fac",
-    "name": "BlockManager API - Cupoane (Laborator 7)",
-    "description": "Endpoint-urile Get, Get(id), Post si Put pentru entitatea CuponReducere. Porneste API-ul cu `npm run api` din orm-codefirst, apoi ruleaza cererile in ordine (sau Run collection). Cererea 4 genereaza un cod nou la fiecare rulare (IARNA + un numar aleator), iar cererea 7 il modifica pe acela.",
+    "name": "BlockManager API",
+    "description": "Cupoane: Get, Get(id), Post, Put, Delete (Laboratorul 7). Monetizare: planuri, abonament, plata simulată și acțiuni taxate, pe datele inițiale (rulează folderul o singură dată după instalare). Pornește API-ul cu `npm run api` din orm-codefirst.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -17,311 +17,698 @@
     {
       "key": "cuponCod",
       "value": "IARNA1"
+    },
+    {
+      "key": "comandaId",
+      "value": "1"
     }
   ],
   "item": [
     {
-      "name": "1. Get - toate cupoanele",
-      "event": [
+      "name": "Cupoane (Laborator 7)",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Lista de cupoane\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/cupoane",
-          "host": [
-            "{{baseUrl}}"
+          "name": "1. Get - toate cupoanele",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Lista de cupoane\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
           ],
-          "path": [
-            "api",
-            "cupoane"
-          ]
-        }
-      }
-    },
-    {
-      "name": "2. Get(id) - cuponul 3",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Cuponul MAX15\", () => pm.expect(pm.response.json().cod).to.eql(\"MAX15\"));"
-            ]
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane"
+              ]
+            }
           }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/cupoane/3",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "cupoane",
-            "3"
-          ]
-        }
-      }
-    },
-    {
-      "name": "3. Get(id) - cupon inexistent",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/cupoane/99",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "cupoane",
-            "99"
-          ]
-        }
-      }
-    },
-    {
-      "name": "4. Post - cupon nou",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
-              "pm.collectionVariables.set(\"cuponId\", pm.response.json().id);",
-              "pm.collectionVariables.set(\"cuponCod\", pm.response.json().cod);"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/cupoane",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "cupoane"
-          ]
         },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"cod\": \"IARNA{{$randomInt}}\",\n  \"reducereProcent\": 12.5,\n  \"planCod\": \"MAX\",\n  \"valabilPana\": \"2027-02-28\",\n  \"utilizariMaxime\": 40,\n  \"activ\": true\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+        {
+          "name": "2. Get(id) - cuponul 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Cuponul MAX15\", () => pm.expect(pm.response.json().cod).to.eql(\"MAX15\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane/3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane",
+                "3"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get(id) - cupon inexistent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane/99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane",
+                "99"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Post - cupon nou",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"cuponId\", pm.response.json().id);",
+                  "pm.collectionVariables.set(\"cuponCod\", pm.response.json().cod);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cod\": \"IARNA{{$randomInt}}\",\n  \"reducereProcent\": 12.5,\n  \"planCod\": \"MAX\",\n  \"valabilPana\": \"2027-02-28\",\n  \"utilizariMaxime\": 40,\n  \"activ\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "5. Post - date gresite",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cod\": \"ab\",\n  \"reducereProcent\": 150,\n  \"valabilPana\": \"28.02.2027\",\n  \"utilizariMaxime\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "6. Post - cod existent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cod\": \"MAX15\",\n  \"reducereProcent\": 5,\n  \"planCod\": null,\n  \"valabilPana\": \"2027-01-31\",\n  \"utilizariMaxime\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "7. Put - modifica cuponul nou",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Procent modificat\", () => pm.expect(pm.response.json().reducereProcent).to.eql(15));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane/{{cuponId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane",
+                "{{cuponId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cod\": \"{{cuponCod}}\",\n  \"reducereProcent\": 15,\n  \"planCod\": null,\n  \"valabilPana\": \"2027-03-31\",\n  \"utilizariMaxime\": 60,\n  \"activ\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "8. Put - cupon inexistent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane/99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane",
+                "99"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cod\": \"X99\",\n  \"reducereProcent\": 5,\n  \"planCod\": null,\n  \"valabilPana\": \"2027-01-31\",\n  \"utilizariMaxime\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "9. Delete - șterge logic cuponul nou",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane/{{cuponId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane",
+                "{{cuponId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "10. Get(id) - cuponul șters (stare STERS)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Stare STERS\", () => pm.expect(pm.response.json().stare).to.eql(\"STERS\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane/{{cuponId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane",
+                "{{cuponId}}"
+              ]
             }
           }
         }
-      }
+      ]
     },
     {
-      "name": "5. Post - date gresite",
-      "event": [
+      "name": "Monetizare (secțiunea de utilizator)",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/cupoane",
-          "host": [
-            "{{baseUrl}}"
+          "name": "1. Planuri",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"3 planuri\", () => pm.expect(pm.response.json().length).to.eql(3));"
+                ]
+              }
+            }
           ],
-          "path": [
-            "api",
-            "cupoane"
-          ]
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/planuri",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "planuri"
+              ]
+            }
+          }
         },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"cod\": \"ab\",\n  \"reducereProcent\": 150,\n  \"valabilPana\": \"28.02.2027\",\n  \"utilizariMaxime\": 0\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+        {
+          "name": "2. Starea asociației Mărăști 7 (fără abonament)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/asociatii/3/stare",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "asociatii",
+                "3",
+                "stare"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Verifică cuponul MAX15 pentru Max",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cupoane/verifica?cod=MAX15&planCod=MAX",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cupoane",
+                "verifica?cod=MAX15&planCod=MAX"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Alege planul Max cu MAX15 (comandă de plată)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"comandaId\", pm.response.json().comanda.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/asociatii/3/abonament",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "asociatii",
+                "3",
+                "abonament"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planCod\": \"MAX\",\n  \"codCupon\": \"MAX15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "5. Acțiune taxată cu abonament suspendat (refuz)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/asociatii/3/actiuni",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "asociatii",
+                "3",
+                "actiuni"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cod\": \"CALCUL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "6. Plata simulată a comenzii",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"2000 tokeni\", () => pm.expect(pm.response.json().plata.tokeniAlocati).to.eql(2000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/comenzi/{{comandaId}}/plata",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "comenzi",
+                "{{comandaId}}",
+                "plata"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7. Plata din nou (refuz)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/comenzi/{{comandaId}}/plata",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "comenzi",
+                "{{comandaId}}",
+                "plata"
+              ]
+            }
+          }
+        },
+        {
+          "name": "8. Acțiune taxată: calcul întreținere (10 tokeni)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Sold 1990\", () => pm.expect(pm.response.json().sold).to.eql(1990));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/asociatii/3/actiuni",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "asociatii",
+                "3",
+                "actiuni"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cod\": \"CALCUL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "9. Starea după plată (abonament activ, factură)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Activ\", () => pm.expect(pm.response.json().abonament.status).to.eql(\"ACTIV\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/asociatii/3/stare",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "asociatii",
+                "3",
+                "stare"
+              ]
             }
           }
         }
-      }
-    },
-    {
-      "name": "6. Post - cod existent",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/cupoane",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "cupoane"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"cod\": \"MAX15\",\n  \"reducereProcent\": 5,\n  \"planCod\": null,\n  \"valabilPana\": \"2027-01-31\",\n  \"utilizariMaxime\": 5\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
-    },
-    {
-      "name": "7. Put - modifica cuponul nou",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Procent modificat\", () => pm.expect(pm.response.json().reducereProcent).to.eql(15));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/cupoane/{{cuponId}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "cupoane",
-            "{{cuponId}}"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"cod\": \"{{cuponCod}}\",\n  \"reducereProcent\": 15,\n  \"planCod\": null,\n  \"valabilPana\": \"2027-03-31\",\n  \"utilizariMaxime\": 60,\n  \"activ\": false\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
-    },
-    {
-      "name": "8. Put - cupon inexistent",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/cupoane/99",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "cupoane",
-            "99"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"cod\": \"X99\",\n  \"reducereProcent\": 5,\n  \"planCod\": null,\n  \"valabilPana\": \"2027-01-31\",\n  \"utilizariMaxime\": 5\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
+      ]
     }
   ]
 }

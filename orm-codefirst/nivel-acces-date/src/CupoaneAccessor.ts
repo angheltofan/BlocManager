@@ -30,9 +30,28 @@ const esteCodDuplicat = (e: unknown) =>
 export class CupoaneAccessor {
   constructor(private readonly db: BlockManagerContext = getContext()) {}
 
-  /** Toate cupoanele, cu planul pentru care sunt valabile (null = orice plan platit). */
-  getToate(): Promise<CuponCuPlan[]> {
-    return this.db.cuponReducere.findMany({ orderBy: { id: "asc" }, include: { plan: true } });
+  /** Cupoanele, cu planul pentru care sunt valabile (null = orice plan platit). Cele sterse logic apar doar la cerere. */
+  getToate(inclusivSterse = false): Promise<CuponCuPlan[]> {
+    return this.db.cuponReducere.findMany({
+      where: inclusivSterse ? undefined : { stersLa: null },
+      orderBy: { id: "asc" },
+      include: { plan: true },
+    });
+  }
+
+  /** Un cupon dupa cod (inclusiv sters logic), sau null. */
+  getDupaCod(cod: string): Promise<CuponCuPlan | null> {
+    return this.db.cuponReducere.findUnique({ where: { cod }, include: { plan: true } });
+  }
+
+  /** Stergere logica: cuponul primeste data stergerii si devine inactiv; ramane in baza de date. */
+  stergeLogic(id: number): Promise<CuponReducere> {
+    return this.db.cuponReducere.update({ where: { id }, data: { stersLa: new Date(), activ: false } });
+  }
+
+  /** Anuleaza stergerea logica (cuponul ramane inactiv pana e activat din Edit). */
+  restaureaza(id: number): Promise<CuponReducere> {
+    return this.db.cuponReducere.update({ where: { id }, data: { stersLa: null } });
   }
 
   /** Un cupon dupa id, cu planul lui, sau null daca nu exista. */
@@ -64,7 +83,7 @@ export class CupoaneAccessor {
   async getValabile(laData = new Date()): Promise<CuponCuPlan[]> {
     const zi = new Date(Date.UTC(laData.getFullYear(), laData.getMonth(), laData.getDate()));
     const cupoane = await this.db.cuponReducere.findMany({
-      where: { activ: true, valabilPana: { gte: zi } },
+      where: { activ: true, stersLa: null, valabilPana: { gte: zi } },
       orderBy: { procentReducere: "desc" },
       include: { plan: true },
     });

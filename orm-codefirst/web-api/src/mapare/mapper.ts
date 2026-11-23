@@ -78,7 +78,7 @@ createMap<CuponCuPlan, CuponDto>(
   forMember(
     (d) => d.stare,
     mapFrom((s) =>
-      !s.activ ? "INACTIV" : s.utilizari >= s.utilizariMaxime ? "EPUIZAT" : s.valabilPana.toISOString().slice(0, 10) < ziCurenta() ? "EXPIRAT" : "ACTIV",
+      s.stersLa ? "STERS" : !s.activ ? "INACTIV" : s.utilizari >= s.utilizariMaxime ? "EPUIZAT" : s.valabilPana.toISOString().slice(0, 10) < ziCurenta() ? "EXPIRAT" : "ACTIV",
     ),
   ),
 );

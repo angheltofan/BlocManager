@@ -1,0 +1,16 @@
+{
+  "name": "servicii",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Servicii: nivelul de logica de business (monetizare), cu dependency injection, cache, loguri si evenimente",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "awilix": "12.0.5",
+    "librarie-modele": "1.0.0",
+    "nivel-acces-date": "1.0.0",
+    "repository-codefirst": "1.0.0"
+  }
+}

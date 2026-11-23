@@ -1,12 +1,13 @@
 {
   "name": "demo-orm-codefirst",
   "private": true,
-  "description": "BlockManager - Laboratoarele 4-7: ORM Code First, MVC si API",
+  "description": "BlockManager - aplicatia finala: ORM Code First, nivelul Services, MVC (admin) si API (utilizator)",
   "type": "module",
   "workspaces": [
     "librarie-modele",
     "repository-codefirst",
     "nivel-acces-date",
+    "servicii",
     "test-console-codefirst",
     "web-mvc",
     "web-api"
@@ -19,7 +20,9 @@
     "start": "npm start -w test-console-codefirst",
     "typecheck": "tsc -p tsconfig.json",
     "web": "npm start -w web-mvc",
-    "api": "npm start -w web-api"
+    "api": "npm start -w web-api",
+    "migrate:deploy": "npm run migrate:deploy -w repository-codefirst",
+    "admin": "npm start -w web-mvc"
   },
   "devDependencies": {
     "@types/node": "^20",

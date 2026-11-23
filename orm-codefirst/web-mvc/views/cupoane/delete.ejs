@@ -1,0 +1,16 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/cupoane/<%= cupon.id %>">← Înapoi la cupon</a></p>
+<h1>Ștergi cuponul <span class="cod-mare"><%= cupon.cod %></span>?</h1>
+<p class="subtitlu">Ștergerea este logică: cuponul nu mai apare în listă și nu mai poate fi folosit la plată, dar rămâne în baza de date, cu istoricul utilizărilor. Îl poți restaura oricând.</p>
+
+<dl class="detalii">
+  <div><dt>Reducere</dt><dd><%= cupon.procentReducere %>%</dd></div>
+  <div><dt>Valabil pentru</dt><dd><%= cupon.planDenumire ? `Planul ${cupon.planDenumire}` : "Orice plan plătit" %></dd></div>
+  <div><dt>Utilizări</dt><dd><%= cupon.utilizari %> din <%= cupon.utilizariMaxime %></dd></div>
+</dl>
+
+<form method="post" action="/cupoane/delete/<%= cupon.id %>" class="actiuni spatiu-sus">
+  <button type="submit" class="buton pericol-plin">Șterge cuponul</button>
+  <a class="buton" href="/cupoane/<%= cupon.id %>">Renunță</a>
+</form>
+<%- include('../partials/sfarsit') %>

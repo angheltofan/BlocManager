@@ -8,7 +8,10 @@
     <h1>Abonamente</h1>
     <p class="subtitlu">Planul fiecărei asociații. Pro și Max pot fi folosite doar după plata comenzii simulate.</p>
   </div>
-  <a class="buton principal" href="/abonamente/create">Abonament nou</a>
+  <div class="actiuni">
+    <form method="post" action="/abonamente/job"><button type="submit" class="buton" title="Închide perioadele terminate: reînnoiește Free, suspendă Pro/Max până la plată">Rulează jobul zilnic</button></form>
+    <a class="buton principal" href="/abonamente/create">Abonament nou</a>
+  </div>
 </div>
 <% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
 
@@ -26,11 +29,12 @@
         <th scope="col">Perioadă</th>
         <th scope="col">Stare</th>
         <th scope="col">Comandă simulată</th>
+        <th scope="col"><span class="ascuns">Acțiuni</span></th>
       </tr>
     </thead>
     <tbody>
       <% abonamente.forEach(function (a) { %>
-      <tr class="<%= a.id === nouId ? 'rand-nou' : '' %>">
+      <tr class="<%= a.id === nouId ? 'rand-nou' : '' %> <%= a.status === 'ANULAT' || a.status === 'EXPIRAT' ? 'rand-sters' : '' %>">
         <td>
           <span class="nume"><%= a.asociatieDenumire %></span>
           <span class="info"><%= a.asociatieAdresa %></span>
@@ -47,6 +51,10 @@
           <% } else { %>
             <span class="info">fără plată (plan gratuit)</span>
           <% } %>
+        </td>
+        <td class="legaturi stiva">
+          <a href="/abonamente/<%= a.id %>">Detalii</a>
+          <% if (a.status === 'ACTIV' || a.status === 'SUSPENDAT') { %><a href="/abonamente/edit/<%= a.id %>">Modifică</a> <a class="pericol" href="/abonamente/delete/<%= a.id %>">Anulează</a><% } %>
         </td>
       </tr>
       <% }) %>

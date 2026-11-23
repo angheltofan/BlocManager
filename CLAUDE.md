@@ -42,7 +42,7 @@ src/lib/prisma.ts           singura instanță de PrismaClient
 src/generated/prisma/       clientul generat (în .gitignore, nu se editează)
 src/app/                    paginile (App Router)
 orm-dbfirst/                Laborator 3: proiect separat Database First (npm workspaces), vezi mai jos
-orm-codefirst/              Laboratoarele 4-7: proiect separat Code First + aplicația MVC web-mvc + API-ul web-api (npm workspaces), vezi mai jos
+orm-codefirst/              APLICAȚIA FINALĂ (Laboratoarele 4-7 + proiect): Code First, Services, MVC admin, API + pagina utilizator, vezi mai jos
 laboratoare/                livrabilele predate la fiecare laborator (PDF-uri, backup-uri); nu fac parte din aplicație
 ```
 
@@ -57,17 +57,25 @@ Proiect separat de aplicația web, cu `package.json` și `node_modules` proprii.
 
 Aplicația web rămâne Schema First: modificările ei de bază de date se fac prin migrări (`prisma migrate dev`). După o migrare nouă, `orm-dbfirst` se actualizează cu `npm run db:pull` și `npm run generate`, rulate din `orm-dbfirst`.
 
-### orm-codefirst (Laboratoarele 4-7: Code First, MVC și API)
+### orm-codefirst: aplicația finală (Laboratoarele 4-7 + proiect)
 
-Proiect separat (Laboratoarele 4-7), cu `package.json` și `node_modules` proprii, exclus din `tsconfig.json` și din ESLint-ul aplicației. Folosește o bază de date separată, `blockmanager_codefirst`, creată doar din migrări.
+**Aplicația evaluată este soluția `orm-codefirst`**, nu aplicația Next.js din rădăcină (aceea a rămas pagina de test din Laboratoarele 2-4). Are `package.json` și `node_modules` proprii, e exclusă din `tsconfig.json` și ESLint-ul rădăcinii și folosește baza de date `blockmanager_codefirst`, creată doar din migrări.
 
-- `librarie-modele/`: modelele (schema Prisma împărțită pe domenii, în `prisma/schema/*.prisma`) și clientul generat în `src/generated/prisma` (nu se editează).
-- `repository-codefirst/`: `BlockManagerContext` (clasă derivată din `PrismaClient`, cu contor de interogări și setarea `INCARCARE_RELATII`), `prisma.config.ts`, migrările (`init`, `date_test`, `modificari_planuri_cupoane_facturi`, `date_asociatii_abonamente`) și `prisma/seed.ts` (doar `planuri` și `cupoane_reducere`).
-- `nivel-acces-date/`: `PlanuriAccessor` (inclusiv eager/lazy pentru cupoane), `AbonamenteAccessor` (inclusiv `getToateCuDetalii`, `getAsociatiiFaraAbonamentCurent`, `creeaza`), `CupoaneAccessor` (inclusiv `getDupaId`, `adauga`, `modifica`).
-- `test-console-codefirst/`: aplicația consolă (`npm start` din `orm-codefirst`).
-- `web-mvc/` (Laborator 5): aplicație web MVC cu Express + EJS pentru cupoanele de reducere (Index, Details, Create, Edit), pe portul 3001 (`npm run web` din `orm-codefirst`). Model: `src/models/CuponViewModel.ts` (conversii entitate/formular și validare), controller: `src/controllers/CupoaneController.ts`, view-uri: `views/`. Scrie doar prin `CupoaneAccessor.adauga` / `modifica`. Formularele se validează pe server; un checkbox nebifat lipsește din corpul cererii, deci înseamnă `false`.
-  - Laborator 6: abonamente (Index, Create), `AbonamentViewModel` + `AbonamenteController`. `AbonamenteAccessor.creeaza` respectă regulile de monetizare într-o tranzacție: o asociație are cel mult un abonament curent; Free pornește `ACTIV`; Pro/Max pornesc `SUSPENDAT` cu o comandă `IN_ASTEPTARE` (`SIM-AAAA-NNNNNN`), redusă de un cupon valabil, a cărui utilizare se numără cu o actualizare condiționată.
-- `web-api/` (Laborator 7): API REST cu Express pentru cupoane, pe portul 3002 (`npm run api` din `orm-codefirst`): `GET /api/cupoane`, `GET /api/cupoane/:id`, `POST /api/cupoane`, `PUT /api/cupoane/:id`. Răspunde cu `CuponDto` (nu cu entitatea); body-ul POST/PUT este `CuponInputDto`, cu planul dat prin cod (`planCod`). Conversiile le face AutoMapper (`@automapper/core` + `@automapper/pojos` 8.8.1) în `src/mapare/mapper.ts`. Coduri: 400 cu `erori` pe câmpuri, 404, 409 pentru cod duplicat, 201 + `Location` la POST. Colecția Postman e în `web-api/`.
+Straturile (npm workspaces), de jos în sus:
+- `librarie-modele/`: entitățile (schema Prisma împărțită pe domenii, în `prisma/schema/*.prisma`) și clientul generat (`src/generated/prisma`, nu se editează).
+- `repository-codefirst/`: `BlockManagerContext` (derivat din `PrismaClient`, cu contor de interogări și `INCARCARE_RELATII`), `prisma.config.ts`, migrările și `prisma/seed.ts` (planuri și cupoane).
+- `nivel-acces-date/`: accesorii (doar acces la date, fără reguli): `PlanuriAccessor`, `CupoaneAccessor` (inclusiv ștergere logică), `AbonamenteAccessor`.
+- `servicii/`: **nivelul Services, unde stă toată logica de business**. Containerul DI (awilix, modul PROXY) e în `src/container.ts`; infrastructura (`Logger` în `logs/blockmanager.log`, `CacheMemorie`, `MagistralaEvenimente`, `EroareBusiness`) în `src/infrastructura`; serviciile în `src/servicii`; consumatorii de evenimente în `src/evenimente`.
+- `web-mvc/`: secțiunea de admin (Express + EJS, port 3001, `npm run admin`). CRUD complet pe cupoane (ștergere logică + restaurare) și abonamente (Details, Edit, anulare = ștergere logică), plus butonul „Rulează jobul zilnic”. Controllerele primesc serviciile din container.
+- `web-api/`: API-ul REST + secțiunea de utilizator (port 3002, `npm run api`). `public/` conține pagina „Abonamentul meu” (HTML + JS fără framework), care folosește doar endpoint-urile `/api/...`. `CupoaneController` (Lab 7) folosește DTO-uri + AutoMapper; `MonetizareController` expune planurile, starea asociației, alegerea planului, plata, pachetele și acțiunile.
+- `test-console-codefirst/`: consola din Laboratorul 4.
+
+Reguli de lucru:
+- Controllerele (MVC și API) nu conțin reguli și nu folosesc accesorii direct: apelează serviciile. O regulă nouă se pune într-un serviciu.
+- Erorile de business sunt `EroareBusiness(cod, mesaj, camp?)`; codul dă statusul HTTP (NEGASIT 404, DATE_INVALIDE 400, CONFLICT 409, ABONAMENT_INACTIV 403, PLAN_NEPERMIS 403, SOLD_INSUFICIENT 402). MVC le afișează în formular sau în `eroare.ejs`, API-ul le întoarce ca JSON.
+- Evenimentele se publică după tranzacție (`magistralaEvenimente.publica`), iar consumatorii rulează asincron și izolat. `PlataEfectuata` are 3 consumatori: factură, notificare, audit (`logs/audit-plati.log`).
+- Fiecare proces (admin, API) are containerul lui, deci și cache-ul lui; nu există încă editare de planuri, deci cache-ul de 10 minute nu are nevoie de invalidare între procese.
+- Instalare: `orm-codefirst\instalare.ps1`; pornire: `orm-codefirst\porneste.ps1`. Verificare înainte de livrare: `npm run typecheck` din `orm-codefirst`.
 
 Setarea `INCARCARE_RELATII` din `.env` (`eager` sau `lazy`) alege cum se încarcă relația Plan → CuponReducere. O modificare de model se face în `librarie-modele/prisma/schema`, apoi `npm run migrate:dev -- --name <nume>` din `orm-codefirst`.
 
@@ -131,8 +139,8 @@ Valorile stau în tabelul `planuri`. Nu le scrie direct în cod: citește-le din
    4. scade întâi din `tokeni_plan`, apoi din `tokeni_extra`, cu o actualizare condiționată, ca două cereri simultane să nu consume același sold;
    5. scrie `CONSUM` cu `cantitate = -cost` și `sold_dupa`;
    6. execută acțiunea. Dacă acțiunea eșuează, totul se anulează.
-8. **Cupoanele de reducere** (`cupoane_reducere`) reduc prețul unei comenzi simulate de abonament cu `procent_reducere` (zecimal, de exemplu 7,50%). Un cupon e valabil doar dacă e `activ`, nu a trecut de `valabil_pana`, `utilizari < utilizari_maxime` și, când are `plan_id`, doar pentru acel plan. În `web-mvc` (Laboratorul 6) se aplică deja la emiterea comenzii; în aplicația Next încă nu.
-9. **Facturile simulate** (`facturi_simulate`): fiecare comandă `ACHITATA` are o factură (relație 1:1), cu numărul `BM-AAAA-NNNNNN`, data plății, subtotal, TVA 21% și total; suma comenzii include TVA. La plata simulată, factura se creează în aceeași tranzacție.
+8. **Cupoanele de reducere** (`cupoane_reducere`) reduc prețul unei comenzi simulate de abonament cu `procent_reducere` (zecimal, de exemplu 7,50%). Un cupon e valabil doar dacă nu e șters (`sters_la` NULL), e `activ`, nu a trecut de `valabil_pana`, `utilizari < utilizari_maxime` și, când are `plan_id`, doar pentru acel plan. Se aplică la emiterea comenzii (`ServiciuComenzi`), iar utilizarea se numără cu o actualizare condiționată.
+9. **Facturile simulate** (`facturi_simulate`): fiecare comandă `ACHITATA` are o factură (relație 1:1), cu numărul `BM-AAAA-NNNNNN`, data plății, subtotal, TVA 21% și total; suma comenzii include TVA. În `orm-codefirst`, factura o emite `ConsumatorFacturi`, la evenimentul `PlataEfectuata` (decuplat de tranzacția plății, idempotent).
 10. **Planurile** au și `pret_anual` (null = fără plată anuală) și `recomandat` (planul evidențiat pe pagina de prețuri).
 11. **Pachetele de tokeni** (`pachete_tokeni`: 100 tokeni / 19 lei, 300 / 49, 1000 / 129) se cumpără tot prin comandă simulată. Adaugă la `tokeni_extra`, nu expiră și se consumă după tokenii planului.
 12. **Upgrade** (de exemplu Free → Pro): comandă cu prețul noului plan. După plată, abonamentul vechi devine `EXPIRAT`, se creează unul nou `ACTIV` pentru o lună, tokenii de plan vechi expiră și se alocă cei ai noului plan.
@@ -140,7 +148,7 @@ Valorile stau în tabelul `planuri`. Nu le scrie direct în cod: citește-le din
 14. **Limitele planului** (`max_apartamente`, `max_blocuri`) se verifică la fiecare adăugare de apartament sau bloc.
 15. **Jurnalul este sursa de adevăr.** Orice schimbare a soldului (`ALOCARE`, `CONSUM`, `CUMPARARE`, `EXPIRARE`, `BONUS`) scrie un rând în `tranzactii_tokeni`. Nu actualiza niciodată `portofele_tokeni` fără rândul corespunzător. Invariant: soldul din portofel = ultimul `sold_dupa` = suma câmpului `cantitate`.
 
-Pune toată logica de tokeni și abonament într-un singur modul de servicii (de exemplu `src/lib/monetizare/`), apelat de toate acțiunile taxate. Nu o copia în pagini.
+Toată logica de tokeni și abonament stă în `orm-codefirst/servicii` (regulile 1-15 sunt implementate acolo). Nu o copia în controllere sau pagini.
 
 ## Domeniul asociației: reguli
 
@@ -175,12 +183,10 @@ Pune toată logica de tokeni și abonament într-un singur modul de servicii (de
 - Laboratorul 4: proiectul `orm-codefirst` (baza de date creată din modele prin migrări, seed, Accessori, eager/lazy loading) și, în aplicație, `planuri.pret_anual`, `planuri.recomandat`, procentul zecimal al cupoanelor și tabelul `facturi_simulate`, afișate pe pagina `/`;
 - Laboratorul 5: aplicația MVC `orm-codefirst/web-mvc` pentru cupoane (Index, Details, Create, Edit);
 - Laboratorul 6: abonamente în `web-mvc` (Index, Create): crearea abonamentului emite comanda simulată și aplică cuponul;
-- Laboratorul 7: API-ul `orm-codefirst/web-api` pentru cupoane (Get, Get(id), Post, Put), cu DTO-uri și AutoMapper.
+- Laboratorul 7: API-ul `orm-codefirst/web-api` pentru cupoane (Get, Get(id), Post, Put), cu DTO-uri și AutoMapper;
+- Proiectul final, în `orm-codefirst`: nivelul Services (plată simulată, alocare și debitare tokeni, upgrade/downgrade, pachete, cupoane, job zilnic), DI, cache, loguri, ștergere logică, evenimente cu 3 consumatori, admin CRUD complet, secțiunea de utilizator prin API, documentația finală (`laboratoare/proiect`).
 
-**Următorii pași:**
-1. autentificarea cu roluri;
-2. modulul de servicii pentru tokeni și abonament (debitare, plată simulată, pachete, upgrade și downgrade);
-3. jobul zilnic (reînnoire Free, suspendare Pro/Max, aplicarea downgrade-urilor);
-4. paginile „Abonament” și „Planuri”;
-5. calculul întreținerii ca acțiune taxată;
-6. transmiterea indexului.
+**Posibile extinderi (nu sunt cerute de grilă):**
+1. autentificarea cu roluri (acum secțiunea de utilizator alege asociația dintr-o listă);
+2. calculul real al întreținerii ca acțiune taxată (acum acțiunea doar debitează tokenii);
+3. transmiterea indexului de către proprietari.

@@ -139,8 +139,9 @@ model CuponReducere {
   valabilPana     DateTime @map("valabil_pana") @db.Date
   utilizariMaxime Int      @default(1) @map("utilizari_maxime")
   utilizari       Int      @default(0)
-  activ           Boolean  @default(true)
-  createdAt       DateTime @default(now()) @map("created_at")
+  activ           Boolean   @default(true)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  stersLa         DateTime? @map("sters_la") // stergere logica: cuponul ramane in baza de date, dar nu mai apare in liste
 
   plan Plan? @relation(fields: [planId], references: [id], onDelete: SetNull)
 

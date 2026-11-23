@@ -1,84 +1,73 @@
-# DemoORM_CodeFirst (BlockManager, Laborator 4)
+# BlockManager (aplicatia finala)
 
-Proiect separat de aplicatia web, organizat ca o solutie cu patru proiecte (npm workspaces).
-Baza de date `blockmanager_codefirst` este creata din modele, prin migrari.
+SaaS cu abonament pentru asociatiile de proprietari. Nucleul este monetizarea: planurile Free, Pro si Max,
+plata lunara simulata si tokenii consumati de actiunile importante.
 
-| Proiect | Echivalent .NET | Continut |
-| --- | --- | --- |
-| `librarie-modele` | LibrarieModele | modelele (entitatile) in `prisma/schema/*.prisma`, cu chei primare si straine; clientul generat in `src/generated/prisma` |
-| `repository-codefirst` | Repository_CodeFirst | `BlockManagerContext` (derivat din PrismaClient, ca DbContext), `prisma.config.ts` (sirul de conexiune din `.env`), migrarile si seed-ul |
-| `nivel-acces-date` | NivelAccesDate (fost NivelAccesDate_DBFirst) | `PlanuriAccessor`, `AbonamenteAccessor`, `CupoaneAccessor` |
-| `test-console-codefirst` | aplicatia consola | afiseaza datele si compara eager / lazy loading |
-| `web-mvc` | proiectul Web MVC (Laboratoarele 5-6) | Express + EJS: cupoane (Index, Details, Create, Edit) si abonamente (Index, Create) |
-| `web-api` | proiectul Web API (Laboratorul 7) | Express, JSON: Get, Get(id), Post, Put pentru cupoane; DTO-uri si AutoMapper |
+Solutia are sapte proiecte (npm workspaces), pe straturi:
 
-## Comenzi (din `orm-codefirst`)
+| Proiect | Rol |
+| --- | --- |
+| `librarie-modele` | entitatile (schema Prisma Code First, `prisma/schema/*.prisma`) si clientul generat |
+| `repository-codefirst` | `BlockManagerContext` (derivat din PrismaClient), migrarile, seed-ul |
+| `nivel-acces-date` | accesorii: `PlanuriAccessor`, `CupoaneAccessor`, `AbonamenteAccessor` |
+| `servicii` | nivelul Services: logica de business, container DI (awilix), cache, loguri, evenimente |
+| `web-mvc` | sectiunea de administrare (MVC, Express + EJS), http://localhost:3001 |
+| `web-api` | API-ul REST si sectiunea de utilizator ("Abonamentul meu"), http://localhost:3002 |
+| `test-console-codefirst` | aplicatia consola din Laboratorul 4 (eager / lazy loading) |
+
+## Instalare si pornire (Windows, PowerShell)
+
+Cerinte: Node.js 22 LTS (minim 20.19) si PostgreSQL 16 sau mai nou.
 
 ```
-npm install                                   # instaleaza pachetele si genereaza clientul
-npm run migrate:dev                           # aplica migrarile pe baza de date (o creeaza, daca lipseste)
-npm run migrate:dev -- --name <nume>          # migrare noua, dupa o modificare in librarie-modele/prisma/schema
-npm run db:seed                               # datele de test din seed (planuri, cupoane_reducere)
-npm start                                     # aplicatia consola
-npm run typecheck                             # verificarea tipurilor in toate proiectele
-npm run web                                   # aplicatia web MVC, http://localhost:3001/cupoane
-npm run api                                   # API-ul REST, http://localhost:3002/api/cupoane
+cd D:\BlocManager\orm-codefirst
+.\instalare.ps1      # .env, npm install, baza de date, migrari, seed (o singura data)
+.\porneste.ps1       # porneste admin (3001) si utilizator + API (3002)
 ```
+
+Pornire manuala: `npm run admin` (sectiunea de admin) si `npm run api` (API + sectiunea de utilizator).
+
+## Nivelul Services (`servicii`)
+
+| Serviciu | Ce face |
+| --- | --- |
+| `ServiciuPlanuri` | planurile, pachetele de tokeni si actiunile taxate, prin cache (10 minute) |
+| `ServiciuComenzi` | alegerea unui plan: abonament nou, upgrade, downgrade programat; comenzi de pachete; anulare |
+| `ServiciuPlati` | plata simulata: comanda achitata, abonament activ, tokeni alocati; publica `PlataEfectuata` |
+| `ServiciuTokeni` | portofelul si jurnalul; debitarea actiunilor taxate, cu actualizare conditionata |
+| `ServiciuAbonamente` | administrarea abonamentelor (Details, Edit, anulare logica) si starea unei asociatii |
+| `ServiciuCupoane` | CRUD cupoane cu stergere logica; valabilitatea unui cupon la o comanda |
+| `ServiciuReinnoire` | jobul zilnic: reinnoieste Free, suspenda Pro/Max pana la plata, aplica downgrade-urile |
+
+Evenimentul `PlataEfectuata` are trei consumatori independenti: `ConsumatorFacturi` (factura simulata),
+`ConsumatorNotificari` (notificare pentru administratorii asociatiei) si `ConsumatorAudit` (`logs/audit-plati.log`).
+`AbonamentSuspendat`, publicat de jobul zilnic, este preluat de notificari si de audit.
+
+Logurile aplicatiei sunt in `logs/blockmanager.log` (o linie JSON pe mesaj).
+
+## Endpoint-uri API
+
+| Endpoint | Ce face |
+| --- | --- |
+| `GET /api/planuri`, `/api/pachete`, `/api/actiuni` | oferta: planuri, pachete de tokeni, costul actiunilor |
+| `GET /api/asociatii`, `/api/asociatii/:id/stare` | asociatiile; abonamentul, portofelul, comenzile, jurnalul, facturile |
+| `POST /api/asociatii/:id/abonament` | alege un plan `{ planCod, codCupon? }` |
+| `POST /api/asociatii/:id/pachete` | comanda un pachet de tokeni `{ pachetId }` |
+| `POST /api/asociatii/:id/actiuni` | executa o actiune taxata `{ cod }` |
+| `POST /api/comenzi/:id/plata`, `/anulare` | plata simulata, anularea unei comenzi |
+| `GET /api/cupoane/verifica?cod=&planCod=` | pretul unui plan dupa reducere |
+| `GET/POST /api/cupoane`, `GET/PUT/DELETE /api/cupoane/:id` | CRUD cupoane (Laboratorul 7), DTO-uri si AutoMapper |
+
+Colectia Postman: `web-api/BlockManager_API.postman_collection.json`.
 
 ## Migrari
 
-1. `20261110150000_init`: creeaza toate tabelele, cheile primare, cheile straine si indecsii.
-2. `20261110150100_date_test`: insereaza planurile FREE, PRO si cupoanele BUNVENIT20, TOAMNA10.
-3. `20261110160000_modificari_planuri_cupoane_facturi`: `planuri.pret_anual`, `planuri.recomandat`,
-   `cupoane_reducere.procent_reducere` din INTEGER in DECIMAL(5,2) si tabelul nou `facturi_simulate`.
-4. `20261111120000_date_asociatii_abonamente` (Laboratorul 6): 4 asociatii, 2 abonamente si comanda achitata SIM-2026-000001.
+1. `20261110150000_init`: toate tabelele, cheile primare si straine
+2. `20261110150100_date_test`: planurile FREE, PRO si doua cupoane
+3. `20261110160000_modificari_planuri_cupoane_facturi`: pret anual, recomandat, procent zecimal, `facturi_simulate`
+4. `20261111120000_date_asociatii_abonamente`: 4 asociatii, 2 abonamente, o comanda achitata
+5. `20261123120000_stergere_logica_cupoane`: `cupoane_reducere.sters_la`
+6. `20261123120100_date_monetizare`: actiunile taxate, pachetele, administratorii asociatiilor, portofelele si jurnalul
 
-Seed-ul ruleaza dupa migrari (`prisma db seed`): gaseste randurile migrarii si le actualizeaza, apoi adauga MAX, MAX15 si VARA5.
-
-## Eager / lazy loading
-
-Setarea `INCARCARE_RELATII` din `.env` (`eager` sau `lazy`) alege cum se incarca relatia Plan -> CuponReducere
-in `PlanuriAccessor.getCuCupoane()`:
-
-- `eager`: planurile si cupoanele se citesc odata (`include`), cu 2 interogari SQL;
-- `lazy`: se citesc doar planurile; cupoanele unui plan se citesc la primul acces, cu cate o interogare pe plan (1 + N).
-
-## Aplicatia web MVC (Laboratorul 5)
-
-`web-mvc` foloseste NivelAccesDate si LibrarieModele. Sirul de conexiune este in `web-mvc/.env`
-(`DATABASE_URL`, echivalentul `connectionStrings` din `web.config`), impreuna cu `PORT`.
-
-| Ruta | Actiune | Accessor |
-| --- | --- | --- |
-| `GET /cupoane` | Index | `CupoaneAccessor.getToate()` |
-| `GET /cupoane/:id` | Details | `CupoaneAccessor.getDupaId()` |
-| `GET /cupoane/create` | Create (formular gol) | `PlanuriAccessor.getToate()` pentru lista de selectie |
-| `POST /cupoane/create` | Create (salvare) | `CupoaneAccessor.adauga()` (AddEntity) |
-| `GET /cupoane/edit/:id` | Edit (formular completat) | `CupoaneAccessor.getDupaId()` |
-| `POST /cupoane/edit/:id` | Edit (salvare) | `CupoaneAccessor.modifica()` (UpdateEntity) |
-
-## Abonamente (Laboratorul 6)
-
-A doua entitate MVC, cu chei straine catre `asociatii` si `planuri`. `AbonamentViewModel` aduna campuri din
-`abonamente`, `asociatii`, `planuri` si `comenzi_simulate`.
-
-| Ruta | Actiune | Accessor |
-| --- | --- | --- |
-| `GET /abonamente` | Index | `AbonamenteAccessor.getToateCuDetalii()` |
-| `GET /abonamente/create` | Create (formular cu listele asociatiilor si planurilor) | `getAsociatiiFaraAbonamentCurent()`, `PlanuriAccessor.getToate()` |
-| `POST /abonamente/create` | Create (salvare) | `AbonamenteAccessor.creeaza()`: abonament + comanda simulata, intr-o tranzactie |
-
-## API (Laboratorul 7)
-
-`web-api` foloseste NivelAccesDate si LibrarieModele; sirul de conexiune este in `web-api/.env` (`DATABASE_URL`, `PORT=3002`).
-Raspunsurile sunt `CuponDto`, iar body-ul cererilor POST/PUT este `CuponInputDto`; conversia din si in modelul
-bazei de date o face AutoMapper (`@automapper/core` 8.8.1, strategia `pojos`), in `src/mapare/mapper.ts`.
-
-| Endpoint | Raspuns |
-| --- | --- |
-| `GET /api/cupoane` | 200, lista de `CuponDto` |
-| `GET /api/cupoane/:id` | 200 sau 404 |
-| `POST /api/cupoane` | 201 + `Location`, 400 (erori pe campuri), 409 (cod existent) |
-| `PUT /api/cupoane/:id` | 200, 400, 404 sau 409 |
-
-Colectia Postman: `web-api/BlockManager_API.postman_collection.json` (Import, apoi Run collection).
+Seed-ul (`npm run db:seed`) adauga planul MAX si cupoanele MAX15, VARA5. Comenzi utile: `npm run typecheck`,
+`npm run migrate:deploy`, `npm run migrate:dev -- --name <nume>` (dupa o modificare in `librarie-modele/prisma/schema`).

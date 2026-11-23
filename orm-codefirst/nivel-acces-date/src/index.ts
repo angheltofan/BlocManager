@@ -6,10 +6,8 @@
 export { PlanuriAccessor, type PlanCuAbonamente, type PlanCuCupoane, type VenitPlan } from "./PlanuriAccessor.ts";
 export {
   AbonamenteAccessor,
-  EroareAbonament,
   type AbonamentCuDetalii,
   type AbonamentCuPlan,
   type AbonamentSuspendat,
-  type DateAbonamentNou,
 } from "./AbonamenteAccessor.ts";
 export { CupoaneAccessor, CodCuponDuplicat, type CuponCuPlan, type DateCupon } from "./CupoaneAccessor.ts";

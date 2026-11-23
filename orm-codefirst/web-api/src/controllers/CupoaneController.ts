@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { CodCuponDuplicat, CupoaneAccessor, PlanuriAccessor } from "nivel-acces-date";
+import { EroareBusiness, type Dependente } from "servicii";
 import type { CuponDto } from "../dtos/CuponDto.ts";
 import { valideazaInput } from "../dtos/CuponInputDto.ts";
 import { laDateCupon, laDto, laDtoLista } from "../mapare/mapper.ts";
@@ -7,85 +7,63 @@ import { laDateCupon, laDto, laDtoLista } from "../mapare/mapper.ts";
 /**
  * CupoaneController: endpoint-urile API pentru entitatea CuponReducere (echivalentul ProduseController).
  *
- *   GET  /api/cupoane        Get()        toate cupoanele                  200
- *   GET  /api/cupoane/:id    Get(int id)  un cupon                         200 | 404
- *   POST /api/cupoane        Post         adauga un cupon (body JSON)      201 | 400 | 409
- *   PUT  /api/cupoane/:id    Put          modifica un cupon (body JSON)    200 | 400 | 404 | 409
+ *   GET    /api/cupoane        Get()        toate cupoanele (?sterse=1 le include pe cele sterse)   200
+ *   GET    /api/cupoane/:id    Get(int id)  un cupon                                                200 | 404
+ *   POST   /api/cupoane        Post         adauga un cupon (body JSON)                             201 | 400 | 409
+ *   PUT    /api/cupoane/:id    Put          modifica un cupon (body JSON)                           200 | 400 | 404 | 409
+ *   DELETE /api/cupoane/:id    Delete       stergere logica                                         204 | 404
  *
  * Raspunsurile sunt CuponDto (nu entitatea din baza de date); conversia o face AutoMapper.
+ * Regulile (cod unic, utilizari, stergere logica) sunt in ServiciuCupoane.
  */
 export class CupoaneController {
-  constructor(
-    private readonly cupoane = new CupoaneAccessor(),
-    private readonly planuri = new PlanuriAccessor(),
-  ) {}
+  private readonly cupoane: Dependente["serviciuCupoane"];
+  private readonly planuri: Dependente["serviciuPlanuri"];
 
-  /** GET /api/cupoane */
-  get = async (_req: Request, res: Response<CuponDto[]>) => {
-    res.json(laDtoLista(await this.cupoane.getToate()));
+  constructor({ serviciuCupoane, serviciuPlanuri }: Pick<Dependente, "serviciuCupoane" | "serviciuPlanuri">) {
+    this.cupoane = serviciuCupoane;
+    this.planuri = serviciuPlanuri;
+  }
+
+  get = async (req: Request, res: Response<CuponDto[]>) => {
+    res.json(laDtoLista(await this.cupoane.getToate(req.query.sterse === "1")));
   };
 
-  /** GET /api/cupoane/:id */
   getById = async (req: Request, res: Response) => {
-    const id = citesteId(req);
-    const cupon = id ? await this.cupoane.getDupaId(id) : null;
-    if (!cupon) return res.status(404).json({ eroare: `Nu există niciun cupon cu id-ul ${req.params.id}.` });
-    res.json(laDto(cupon));
+    res.json(laDto(await this.cupoane.getDupaId(citesteId(req))));
   };
 
-  /** POST /api/cupoane */
   post = async (req: Request, res: Response) => {
     const validare = valideazaInput(req.body);
     if (!validare.ok) return res.status(400).json({ eroare: "Datele cuponului nu sunt valide.", erori: validare.erori });
-
-    const planId = await this.idPlan(validare.dto.planCod);
-    if (planId === undefined) return res.status(400).json({ eroare: "Datele cuponului nu sunt valide.", erori: { planCod: `Nu există un plan plătit cu codul ${validare.dto.planCod}.` } });
-
-    try {
-      const nou = await this.cupoane.adauga(laDateCupon(validare.dto, planId));
-      const cupon = await this.cupoane.getDupaId(nou.id);
-      res.status(201).location(`/api/cupoane/${nou.id}`).json(laDto(cupon!));
-    } catch (e) {
-      if (!(e instanceof CodCuponDuplicat)) throw e;
-      res.status(409).json({ eroare: `Există deja un cupon cu codul ${e.cod}.` });
-    }
+    const nou = await this.cupoane.adauga(laDateCupon(validare.dto, await this.idPlan(validare.dto.planCod)));
+    res.status(201).location(`/api/cupoane/${nou.id}`).json(laDto(await this.cupoane.getDupaId(nou.id)));
   };
 
-  /** PUT /api/cupoane/:id */
   put = async (req: Request, res: Response) => {
     const id = citesteId(req);
-    const existent = id ? await this.cupoane.getDupaId(id) : null;
-    if (!existent) return res.status(404).json({ eroare: `Nu există niciun cupon cu id-ul ${req.params.id}.` });
-
+    await this.cupoane.getDupaId(id); // 404 daca nu exista
     const validare = valideazaInput(req.body);
     if (!validare.ok) return res.status(400).json({ eroare: "Datele cuponului nu sunt valide.", erori: validare.erori });
-    if (validare.dto.utilizariMaxime < existent.utilizari) {
-      return res.status(400).json({
-        eroare: "Datele cuponului nu sunt valide.",
-        erori: { utilizariMaxime: `Cuponul a fost folosit deja de ${existent.utilizari} ori; maximul nu poate fi mai mic.` },
-      });
-    }
-    const planId = await this.idPlan(validare.dto.planCod);
-    if (planId === undefined) return res.status(400).json({ eroare: "Datele cuponului nu sunt valide.", erori: { planCod: `Nu există un plan plătit cu codul ${validare.dto.planCod}.` } });
-
-    try {
-      await this.cupoane.modifica(existent.id, laDateCupon(validare.dto, planId));
-      res.json(laDto((await this.cupoane.getDupaId(existent.id))!));
-    } catch (e) {
-      if (!(e instanceof CodCuponDuplicat)) throw e;
-      res.status(409).json({ eroare: `Există deja un cupon cu codul ${e.cod}.` });
-    }
+    await this.cupoane.modifica(id, laDateCupon(validare.dto, await this.idPlan(validare.dto.planCod)));
+    res.json(laDto(await this.cupoane.getDupaId(id)));
   };
 
-  /** Id-ul planului dupa cod; null = orice plan platit; undefined = cod inexistent sau plan gratuit. */
-  private async idPlan(cod: string | null): Promise<number | null | undefined> {
+  delete = async (req: Request, res: Response) => {
+    await this.cupoane.sterge(citesteId(req));
+    res.status(204).end();
+  };
+
+  /** Id-ul planului dupa cod; null = orice plan platit. */
+  private async idPlan(cod: string | null): Promise<number | null> {
     if (cod === null) return null;
-    const plan = await this.planuri.getDupaCod(cod);
-    return plan && plan.pretLunar.gt(0) ? plan.id : undefined;
+    const plan = await this.planuri.getPlanDupaCod(cod);
+    if (!plan || plan.pretLunar.isZero()) throw new EroareBusiness("DATE_INVALIDE", `Nu există un plan plătit cu codul ${cod}.`, "planCod");
+    return plan.id;
   }
 }
 
-function citesteId(req: Request): number | null {
+function citesteId(req: Request): number {
   const id = Number(req.params.id);
-  return Number.isInteger(id) && id > 0 ? id : null;
+  return Number.isInteger(id) && id > 0 ? id : 0;
 }

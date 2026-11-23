@@ -1,0 +1,84 @@
+<%- include('../partials/inceput', { titlu }) %>
+<%
+  const COMANDA = { IN_ASTEPTARE: ["În așteptare", "galben"], ACHITATA: ["Achitată", "verde"], ANULATA: ["Anulată", "gri"] };
+  const TIP = { ALOCARE: "Alocare", CONSUM: "Consum", CUMPARARE: "Cumpărare", EXPIRARE: "Expirare", BONUS: "Bonus" };
+%>
+<p class="inapoi"><a href="/abonamente">← Toate abonamentele</a></p>
+<div class="antet-pagina">
+  <div>
+    <h1>Abonament <%= a.plan.denumire %></h1>
+    <p class="subtitlu"><%= a.asociatie.denumire %> · <%- include('_stare', { stare: a.status }) %></p>
+  </div>
+  <% if (a.curent) { %>
+  <div class="actiuni">
+    <a class="buton principal" href="/abonamente/edit/<%= a.id %>">Modifică</a>
+    <a class="buton pericol" href="/abonamente/delete/<%= a.id %>">Anulează</a>
+  </div>
+  <% } %>
+</div>
+<% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+
+<div class="grila-doua">
+  <dl class="detalii">
+    <div><dt>Asociație</dt><dd><%= a.asociatie.denumire %><span class="info"><%= a.asociatie.adresa %> · CUI <%= a.asociatie.cui %></span></dd></div>
+    <div><dt>Plan</dt><dd><%= a.plan.denumire %> · <%= a.plan.pretLunar %> lei / lună · <%= a.plan.tokeniLunari %> tokeni</dd></div>
+    <div><dt>Perioadă</dt><dd><%= a.inceputPerioada %> – <%= a.sfarsitPerioada %></dd></div>
+    <div><dt>Reînnoire automată</dt><dd><%= a.reinnoireAutomata ? "Da" : "Nu" %></dd></div>
+    <div><dt>Plan programat</dt><dd><%= a.planUrmator ? `${a.planUrmator}, de la ${a.sfarsitPerioada}` : "—" %></dd></div>
+  </dl>
+  <div class="card-sold">
+    <p class="eticheta-mica">Portofel de tokeni</p>
+    <% if (a.portofel) { %>
+      <p class="sold-mare"><%= a.portofel.sold %> <span>tokeni</span></p>
+      <p class="info"><%= a.portofel.tokeniPlan %> din plan · <%= a.portofel.tokeniExtra %> extra (nu expiră)</p>
+    <% } else { %>
+      <p class="info">Asociația nu are încă portofel.</p>
+    <% } %>
+  </div>
+</div>
+
+<h2 class="titlu-sectiune">Comenzi simulate</h2>
+<% if (a.comenzi.length === 0) { %>
+  <p class="gol">Abonamentul nu are comenzi (plan gratuit).</p>
+<% } else { %>
+<div class="tabel-container">
+  <table>
+    <thead><tr><th scope="col">Referință</th><th scope="col">Emisă</th><th scope="col" class="numar">Sumă</th><th scope="col">Stare</th><th scope="col">Achitată</th><th scope="col">Factură</th></tr></thead>
+    <tbody>
+      <% a.comenzi.forEach(function (c) { %>
+      <tr>
+        <td class="cod"><%= c.referinta %></td>
+        <td><%= c.creata %></td>
+        <td class="numar"><%= c.suma %> lei</td>
+        <td><span class="eticheta <%= COMANDA[c.status][1] %>"><%= COMANDA[c.status][0] %></span></td>
+        <td><%= c.achitataLa || "—" %></td>
+        <td class="cod"><%= c.factura || "—" %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<h2 class="titlu-sectiune">Jurnalul de tokeni al asociației</h2>
+<% if (a.jurnal.length === 0) { %>
+  <p class="gol">Nicio mișcare de tokeni.</p>
+<% } else { %>
+<div class="tabel-container">
+  <table>
+    <thead><tr><th scope="col">Data</th><th scope="col">Tip</th><th scope="col">Descriere</th><th scope="col" class="numar">Cantitate</th><th scope="col" class="numar">Sold după</th></tr></thead>
+    <tbody>
+      <% a.jurnal.forEach(function (t) { %>
+      <tr>
+        <td><%= t.data %></td>
+        <td><%= TIP[t.tip] %></td>
+        <td><%= t.descriere %></td>
+        <td class="numar <%= t.cantitate < 0 ? 'minus' : 'plus' %>"><%= t.cantitate > 0 ? "+" : "" %><%= t.cantitate %></td>
+        <td class="numar"><%= t.soldDupa %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+<%- include('../partials/sfarsit') %>

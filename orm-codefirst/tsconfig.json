@@ -19,6 +19,7 @@
     "nivel-acces-date/src",
     "test-console-codefirst/src",
     "web-mvc/src",
-    "web-api/src"
+    "web-api/src",
+    "servicii/src"
   ]
 }

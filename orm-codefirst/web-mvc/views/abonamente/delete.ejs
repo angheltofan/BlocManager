@@ -1,0 +1,19 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/abonamente/<%= a.id %>">← Înapoi la abonament</a></p>
+<h1>Anulezi abonamentul <%= a.plan.denumire %>?</h1>
+<p class="subtitlu"><%= a.asociatie.denumire %></p>
+
+<div class="alerta galben">
+  Anularea este o ștergere logică: abonamentul rămâne în istoric, cu starea „Anulat”. La anulare:
+  <ul>
+    <li>comenzile neplătite ale abonamentului se anulează;</li>
+    <li>tokenii de plan rămași<% if (a.portofel) { %> (<%= a.portofel.tokeniPlan %>)<% } %> expiră; tokenii extra rămân în portofel;</li>
+    <li>asociația poate alege apoi un plan nou.</li>
+  </ul>
+</div>
+
+<form method="post" action="/abonamente/delete/<%= a.id %>" class="actiuni spatiu-sus">
+  <button type="submit" class="buton pericol-plin">Anulează abonamentul</button>
+  <a class="buton" href="/abonamente/<%= a.id %>">Renunță</a>
+</form>
+<%- include('../partials/sfarsit') %>

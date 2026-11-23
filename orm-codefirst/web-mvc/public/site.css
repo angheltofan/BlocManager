@@ -124,3 +124,29 @@ td .info { display: block; margin-top: 2px; }
 tr.rand-nou td { background: var(--accent-slab); }
 td.numar, td .cod { white-space: nowrap; }
 .optional { font-weight: 400; color: var(--estompat); font-size: 0.85rem; }
+
+/* Aplicatia finala: admin */
+.marca-sectiune { font-weight: 500; font-size: 0.8rem; color: var(--accent); background: var(--accent-slab); padding: 1px 6px; border-radius: 5px; margin-left: 4px; }
+.filtru { margin: -8px 0 12px; font-size: 0.9rem; }
+a.pericol { color: var(--rosu); }
+.buton.pericol { color: var(--rosu); border-color: var(--rosu-slab); }
+.buton.pericol-plin { background: var(--rosu); border-color: var(--rosu); color: #fff; }
+.eticheta.rosu { background: var(--rosu-slab); color: var(--rosu); }
+tr.rand-sters td { color: var(--estompat); }
+tr.rand-sters .cod { color: var(--estompat); text-decoration: line-through; }
+.spatiu-sus { margin-top: 20px; }
+.actiuni form { margin: 0; }
+.alerta.galben { background: var(--galben-slab); color: var(--galben); }
+.alerta ul { margin: 8px 0 0; padding-left: 20px; }
+.grila-doua { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+.card-sold { background: var(--suprafata); border: 1px solid var(--margine); border-radius: 10px; padding: 16px; }
+.eticheta-mica { margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--estompat); font-weight: 600; }
+.sold-mare { margin: 6px 0 2px; font-size: 2rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.sold-mare span { font-size: 1rem; font-weight: 500; color: var(--estompat); }
+.titlu-sectiune { font-size: 1.15rem; margin: 28px 0 10px; }
+td.plus { color: var(--accent); }
+td.minus { color: var(--rosu); }
+dd .info { display: block; }
+@media (max-width: 760px) { .grila-doua { grid-template-columns: 1fr; } }
+.nume { min-width: 190px; }
+.legaturi.stiva a { display: block; margin: 0 0 2px; }

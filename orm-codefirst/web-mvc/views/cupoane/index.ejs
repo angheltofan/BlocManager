@@ -7,6 +7,9 @@
   <a class="buton principal" href="/cupoane/create">Cupon nou</a>
 </div>
 <% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+<p class="filtru">
+  <% if (inclusivSterse) { %><a href="/cupoane">Ascunde cupoanele șterse</a><% } else { %><a href="/cupoane?sterse=1">Arată și cupoanele șterse</a><% } %>
+</p>
 
 <% if (cupoane.length === 0) { %>
   <p class="gol">Nu există încă niciun cupon. <a href="/cupoane/create">Adaugă primul cupon</a>.</p>
@@ -26,14 +29,17 @@
     </thead>
     <tbody>
       <% cupoane.forEach(function (c) { %>
-      <tr>
+      <tr class="<%= c.stare === 'STERS' ? 'rand-sters' : '' %>">
         <td><a class="cod" href="/cupoane/<%= c.id %>"><%= c.cod %></a></td>
         <td class="numar"><%= c.procentReducere %>%</td>
         <td><%= c.planDenumire ? `Planul ${c.planDenumire}` : "Orice plan plătit" %></td>
         <td><%= c.valabilPana.split('-').reverse().join('.') %></td>
         <td class="numar"><%= c.utilizari %> / <%= c.utilizariMaxime %></td>
         <td><%- include('../partials/stare', { stare: c.stare }) %></td>
-        <td class="legaturi"><a href="/cupoane/<%= c.id %>">Detalii</a> <a href="/cupoane/edit/<%= c.id %>">Modifică</a></td>
+        <td class="legaturi">
+          <a href="/cupoane/<%= c.id %>">Detalii</a>
+          <% if (c.stare !== 'STERS') { %><a href="/cupoane/edit/<%= c.id %>">Modifică</a> <a class="pericol" href="/cupoane/delete/<%= c.id %>">Șterge</a><% } %>
+        </td>
       </tr>
       <% }) %>
     </tbody>

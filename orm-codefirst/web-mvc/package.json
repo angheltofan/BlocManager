@@ -13,7 +13,8 @@
     "express": "5.1.0",
     "librarie-modele": "1.0.0",
     "nivel-acces-date": "1.0.0",
-    "repository-codefirst": "1.0.0"
+    "repository-codefirst": "1.0.0",
+    "servicii": "1.0.0"
   },
   "devDependencies": {
     "@types/express": "5.0.3"

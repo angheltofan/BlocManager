@@ -19,7 +19,8 @@ export type CuponViewModel = {
   utilizariMaxime: string;
   utilizari: number; // doar pentru afisare: le creste plata simulata, nu formularul
   activ: boolean;
-  stare: "ACTIV" | "INACTIV" | "EXPIRAT" | "EPUIZAT";
+  stare: "ACTIV" | "INACTIV" | "EXPIRAT" | "EPUIZAT" | "STERS";
+  stersLa: string | null; // ZZ.LL.AAAA, cand cuponul a fost sters logic
 };
 
 /** Erorile de validare, pe camp (cheia "general" = eroare care nu tine de un singur camp). */
@@ -41,6 +42,7 @@ export function cuponGol(): CuponViewModel {
     utilizari: 0,
     activ: true,
     stare: "ACTIV",
+    stersLa: null,
   };
 }
 
@@ -58,7 +60,8 @@ export function dinEntitate(c: CuponCuPlan, azi = new Date()): CuponViewModel {
     utilizariMaxime: String(c.utilizariMaxime),
     utilizari: c.utilizari,
     activ: c.activ,
-    stare: !c.activ ? "INACTIV" : c.utilizari >= c.utilizariMaxime ? "EPUIZAT" : valabilPana < ziCurenta ? "EXPIRAT" : "ACTIV",
+    stersLa: c.stersLa ? c.stersLa.toISOString().slice(0, 10).split("-").reverse().join(".") : null,
+    stare: c.stersLa ? "STERS" : !c.activ ? "INACTIV" : c.utilizari >= c.utilizariMaxime ? "EPUIZAT" : valabilPana < ziCurenta ? "EXPIRAT" : "ACTIV",
   };
 }
 

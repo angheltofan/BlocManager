@@ -5,7 +5,14 @@
     <h1 class="cod-mare"><%= cupon.cod %></h1>
     <p class="subtitlu"><%- include('../partials/stare', { stare: cupon.stare }) %></p>
   </div>
-  <a class="buton principal" href="/cupoane/edit/<%= cupon.id %>">Modifică</a>
+  <div class="actiuni">
+    <% if (cupon.stare === 'STERS') { %>
+      <form method="post" action="/cupoane/restore/<%= cupon.id %>"><button type="submit" class="buton principal">Restaurează</button></form>
+    <% } else { %>
+      <a class="buton principal" href="/cupoane/edit/<%= cupon.id %>">Modifică</a>
+      <a class="buton pericol" href="/cupoane/delete/<%= cupon.id %>">Șterge</a>
+    <% } %>
+  </div>
 </div>
 <% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
 
@@ -15,6 +22,7 @@
   <div><dt>Valabil până la</dt><dd><%= cupon.valabilPana.split('-').reverse().join('.') %></dd></div>
   <div><dt>Utilizări</dt><dd><%= cupon.utilizari %> din <%= cupon.utilizariMaxime %></dd></div>
   <div><dt>Activ</dt><dd><%= cupon.activ ? "Da" : "Nu" %></dd></div>
+  <% if (cupon.stersLa) { %><div><dt>Șters la</dt><dd><%= cupon.stersLa %></dd></div><% } %>
   <div><dt>Id</dt><dd><%= cupon.id %></dd></div>
 </dl>
 <%- include('../partials/sfarsit') %>

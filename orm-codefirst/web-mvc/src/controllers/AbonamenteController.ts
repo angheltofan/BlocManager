@@ -1,75 +1,151 @@
 import type { Request, Response } from "express";
-import { AbonamenteAccessor, EroareAbonament, PlanuriAccessor } from "nivel-acces-date";
-import { dinCorp, dinEntitate, formularGol, valideaza, type AbonamentFormular, type EroriAbonament } from "../models/AbonamentViewModel.ts";
+import { EroareBusiness, type Dependente } from "servicii";
+import {
+  detaliiDinEntitate,
+  dinCorp,
+  dinCorpEdit,
+  dinEntitate,
+  formularEditDinEntitate,
+  formularGol,
+  valideaza,
+  valideazaEdit,
+  type AbonamentFormular,
+  type AbonamentFormularEdit,
+  type EroriAbonament,
+} from "../models/AbonamentViewModel.ts";
 
 /**
- * AbonamenteController: actiunile Index si Create pentru entitatea Abonament
- * (cheile straine asociatie_id -> asociatii si plan_id -> planuri).
+ * AbonamenteController (admin): CRUD complet pentru entitatea Abonament
+ * (cheile straine asociatie_id -> asociatii, plan_id -> planuri, plan_urmator_id -> planuri).
  *
- *   GET  /abonamente          Index    lista abonamentelor, cu asociatia, planul si comanda simulata
- *   GET  /abonamente/create   Create   formularul gol, cu listele de selectie pentru cheile straine
- *   POST /abonamente/create   Create   salvarea abonamentului (si a comenzii simulate, la planurile platite)
+ *   GET  /abonamente               Index    lista abonamentelor
+ *   GET  /abonamente/:id           Details  abonamentul, comenzile, facturile si jurnalul de tokeni
+ *   GET  /abonamente/create        Create   formularul gol
+ *   POST /abonamente/create        Create   abonament nou (Free activ; Pro/Max suspendat, cu comanda simulata)
+ *   GET  /abonamente/edit/:id      Edit     formularul completat
+ *   POST /abonamente/edit/:id      Edit     reinnoire automata, plan programat, sfarsitul perioadei
+ *   GET  /abonamente/delete/:id    Delete   confirmarea anularii
+ *   POST /abonamente/delete/:id    Delete   anulare = stergere logica (abonamentul ramane in istoric)
+ *   POST /abonamente/job           -        ruleaza jobul zilnic de reinnoire
  */
 export class AbonamenteController {
-  constructor(
-    private readonly abonamente = new AbonamenteAccessor(),
-    private readonly planuri = new PlanuriAccessor(),
-  ) {}
+  private readonly abonamente: Dependente["serviciuAbonamente"];
+  private readonly planuri: Dependente["serviciuPlanuri"];
+  private readonly reinnoire: Dependente["serviciuReinnoire"];
 
-  /** GET /abonamente */
+  constructor(dep: Pick<Dependente, "serviciuAbonamente" | "serviciuPlanuri" | "serviciuReinnoire">) {
+    this.abonamente = dep.serviciuAbonamente;
+    this.planuri = dep.serviciuPlanuri;
+    this.reinnoire = dep.serviciuReinnoire;
+  }
+
   index = async (req: Request, res: Response) => {
-    const lista = (await this.abonamente.getToateCuDetalii()).map(dinEntitate);
-    res.render("abonamente/index", { titlu: "Abonamente", abonamente: lista, mesaj: await this.mesajCreat(req), nouId: Number(req.query.id) || null });
+    const lista = (await this.abonamente.getToate()).map(dinEntitate);
+    res.render("abonamente/index", {
+      titlu: "Abonamente",
+      abonamente: lista,
+      mesaj: typeof req.query.mesaj === "string" ? req.query.mesaj : null,
+      nouId: Number(req.query.id) || null,
+    });
   };
 
-  /** GET /abonamente/create */
+  details = async (req: Request, res: Response) => {
+    const a = detaliiDinEntitate(await this.abonamente.getDetalii(citesteId(req)));
+    res.render("abonamente/details", { titlu: `Abonament ${a.plan.denumire} · ${a.asociatie.denumire}`, a, mesaj: typeof req.query.mesaj === "string" ? req.query.mesaj : null });
+  };
+
   createGet = async (_req: Request, res: Response) => {
-    await this.afiseazaFormular(res, formularGol(), {});
+    await this.afiseazaCreate(res, formularGol(), {});
   };
 
-  /** POST /abonamente/create */
   createPost = async (req: Request, res: Response) => {
     const formular = dinCorp(req.body ?? {});
-    const rezultat = valideaza(formular);
-    if (!rezultat.ok) return this.afiseazaFormular(res, formular, rezultat.erori, 400);
-
+    const v = valideaza(formular);
+    if (!v.ok) return this.afiseazaCreate(res, formular, v.erori, 400);
     try {
-      const { abonament } = await this.abonamente.creeaza(rezultat.date);
-      res.redirect(303, `/abonamente?mesaj=creat&id=${abonament.id}`);
+      const rezultat = await this.abonamente.creeaza(v.asociatieId, v.planId, v.optiuni);
+      res.redirect(303, `/abonamente?id=${rezultat.abonament.id}&mesaj=${encodeURIComponent(rezultat.mesaj)}`);
     } catch (e) {
-      if (!(e instanceof EroareAbonament)) throw e;
-      await this.afiseazaFormular(res, formular, { [e.camp]: e.message }, 409);
+      if (!(e instanceof EroareBusiness)) throw e;
+      await this.afiseazaCreate(res, formular, { [e.camp ?? "general"]: e.message }, e.status);
     }
+  };
+
+  editGet = async (req: Request, res: Response) => {
+    const detalii = await this.abonamente.getDetalii(citesteId(req));
+    await this.afiseazaEdit(res, detalii, formularEditDinEntitate(detalii.abonament), {});
+  };
+
+  editPost = async (req: Request, res: Response) => {
+    const detalii = await this.abonamente.getDetalii(citesteId(req));
+    const formular = dinCorpEdit(req.body ?? {});
+    const v = valideazaEdit(formular);
+    if (!v.ok) return this.afiseazaEdit(res, detalii, formular, v.erori, 400);
+    try {
+      await this.abonamente.modifica(detalii.abonament.id, v.date);
+      res.redirect(303, `/abonamente/${detalii.abonament.id}?mesaj=${encodeURIComponent("Modificările au fost salvate.")}`);
+    } catch (e) {
+      if (!(e instanceof EroareBusiness)) throw e;
+      await this.afiseazaEdit(res, detalii, formular, { [e.camp ?? "general"]: e.message }, e.status);
+    }
+  };
+
+  deleteGet = async (req: Request, res: Response) => {
+    const a = detaliiDinEntitate(await this.abonamente.getDetalii(citesteId(req)));
+    res.render("abonamente/delete", { titlu: "Anulează abonamentul", a });
+  };
+
+  deletePost = async (req: Request, res: Response) => {
+    const id = citesteId(req);
+    await this.abonamente.anuleaza(id);
+    res.redirect(303, `/abonamente/${id}?mesaj=${encodeURIComponent("Abonamentul a fost anulat. Rămâne în istoric, iar asociația poate alege un plan nou.")}`);
+  };
+
+  jobPost = async (_req: Request, res: Response) => {
+    const rezultat = await this.reinnoire.ruleaza();
+    const mesaj =
+      rezultat.length === 0
+        ? "Jobul zilnic a rulat: nicio perioadă nu s-a încheiat azi."
+        : `Jobul zilnic a rulat: ${rezultat.map((r) => `${r.asociatie} – ${r.actiune}`).join("; ")}.`;
+    res.redirect(303, `/abonamente?mesaj=${encodeURIComponent(mesaj)}`);
   };
 
   // ---------------------------------------------------------------
 
-  /** Formularul Create, cu listele de selectie citite din tabelele asociatii si planuri. */
-  private async afiseazaFormular(res: Response, formular: AbonamentFormular, erori: EroriAbonament, status = 200) {
-    const [asociatii, planuri] = await Promise.all([this.abonamente.getAsociatiiFaraAbonamentCurent(), this.planuri.getToate()]);
+  private async optiuniPlan() {
+    return (await this.planuri.getPlanuri()).map((p) => ({
+      valoare: String(p.id),
+      text: p.pretLunar.isZero()
+        ? `${p.denumire} (gratuit, ${p.tokeniLunari} tokeni / lună)`
+        : `${p.denumire} (${p.pretLunar.toFixed(2).replace(".", ",")} lei, ${p.tokeniLunari} tokeni / lună)`,
+    }));
+  }
+
+  private async afiseazaCreate(res: Response, formular: AbonamentFormular, erori: EroriAbonament, status = 200) {
+    const [asociatii, optiuniPlan] = await Promise.all([this.abonamente.getAsociatiiFaraAbonamentCurent(), this.optiuniPlan()]);
     res.status(status).render("abonamente/create", {
       titlu: "Abonament nou",
       formular,
       erori,
       optiuniAsociatie: asociatii.map((a) => ({ valoare: String(a.id), text: a.denumire })),
-      optiuniPlan: planuri.map((p) => ({
-        valoare: String(p.id),
-        text: p.pretLunar.isZero()
-          ? `${p.denumire} (gratuit, ${p.tokeniLunari} tokeni / lună)`
-          : `${p.denumire} (${p.pretLunar.toFixed(2).replace(".", ",")} lei, ${p.tokeniLunari} tokeni / lună)`,
-      })),
+      optiuniPlan,
     });
   }
 
-  /** Mesajul afisat in Index dupa Create, construit din abonamentul salvat. */
-  private async mesajCreat(req: Request): Promise<string | null> {
-    if (req.query.mesaj !== "creat") return null;
-    const id = Number(req.query.id);
-    const a = Number.isInteger(id) ? await this.abonamente.getDupaIdCuDetalii(id) : null;
-    if (!a) return null;
-    const vm = dinEntitate(a);
-    return vm.status === "ACTIV"
-      ? `Abonamentul ${vm.planDenumire} pentru ${vm.asociatieDenumire} este activ.`
-      : `Abonamentul ${vm.planDenumire} pentru ${vm.asociatieDenumire} a fost creat. Rămâne suspendat până la plata comenzii ${vm.comandaReferinta} (${vm.comandaSuma} lei).`;
+  private async afiseazaEdit(
+    res: Response,
+    detalii: Awaited<ReturnType<Dependente["serviciuAbonamente"]["getDetalii"]>>,
+    formular: AbonamentFormularEdit,
+    erori: EroriAbonament,
+    status = 200,
+  ) {
+    const a = detaliiDinEntitate(detalii);
+    const optiuniPlan = (await this.optiuniPlan()).filter((o) => o.valoare !== String(detalii.abonament.planId));
+    res.status(status).render("abonamente/edit", { titlu: "Modifică abonamentul", a, formular, erori, optiuniPlan });
   }
+}
+
+function citesteId(req: Request): number {
+  const id = Number(req.params.id);
+  return Number.isInteger(id) && id > 0 ? id : 0;
 }

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Abonamentul meu · BlockManager</title>
+  <link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+  <header class="bara">
+    <div class="continut bara-interior">
+      <span class="marca">BlockManager <span class="marca-sectiune">abonamentul meu</span></span>
+      <div class="bara-dreapta">
+        <label for="asociatie" class="ascuns">Asociația</label>
+        <select id="asociatie" aria-label="Asociația"></select>
+        <a class="legatura-admin" href="http://localhost:3001/abonamente">Admin ↗</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="continut">
+    <div id="anunt" class="anunt" hidden></div>
+
+    <section class="rand-sus" aria-label="Situația abonamentului">
+      <article class="card" id="card-abonament">
+        <p class="eticheta-mica">Abonament</p>
+        <h1 id="plan-curent">…</h1>
+        <p id="plan-detalii" class="estompat"></p>
+        <p id="plan-programat" class="nota" hidden></p>
+      </article>
+      <article class="card" id="card-sold">
+        <p class="eticheta-mica">Tokeni disponibili</p>
+        <p class="sold"><span id="sold">0</span> <span class="unitate">tokeni</span></p>
+        <div class="bara-sold" aria-hidden="true"><span id="bara-plan"></span><span id="bara-extra"></span></div>
+        <p id="sold-detalii" class="estompat"></p>
+      </article>
+    </section>
+
+    <section id="sectiune-comenzi" hidden>
+      <h2>Comenzi de plătit</h2>
+      <div id="comenzi" class="lista-comenzi"></div>
+    </section>
+
+    <section>
+      <div class="antet-sectiune">
+        <div>
+          <h2>Planuri</h2>
+          <p class="estompat">Plata este lunară și simulată. Pro și Max pot fi folosite după plata comenzii.</p>
+        </div>
+        <div class="cupon">
+          <label for="cod-cupon">Cod de reducere</label>
+          <input id="cod-cupon" type="text" maxlength="30" placeholder="ex. BUNVENIT20" autocomplete="off">
+          <p id="cupon-info" class="estompat mic"></p>
+        </div>
+      </div>
+      <div id="planuri" class="grila-planuri"></div>
+    </section>
+
+    <section>
+      <h2>Acțiuni</h2>
+      <p class="estompat">Acțiunile importante consumă tokeni: întâi din plan, apoi din cei extra.</p>
+      <div id="actiuni" class="grila-actiuni"></div>
+    </section>
+
+    <section>
+      <h2>Pachete de tokeni</h2>
+      <p class="estompat">Tokenii extra nu expiră și se folosesc după cei ai planului.</p>
+      <div id="pachete" class="grila-pachete"></div>
+    </section>
+
+    <section class="rand-tabele">
+      <div>
+        <h2>Jurnalul de tokeni</h2>
+        <div class="tabel-container"><table><thead><tr><th>Data</th><th>Operație</th><th class="numar">Tokeni</th><th class="numar">Sold</th></tr></thead><tbody id="jurnal"></tbody></table></div>
+      </div>
+      <div>
+        <h2>Facturi</h2>
+        <div class="tabel-container"><table><thead><tr><th>Număr</th><th>Pentru</th><th class="numar">Total</th></tr></thead><tbody id="facturi"></tbody></table></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="mesaj" class="mesaj" role="status" aria-live="polite" hidden></div>
+  <footer class="continut subsol">BlockManager · secțiunea de utilizator · date prin <a href="/api/planuri">API</a></footer>
+  <script src="/app.js"></script>
+</body>
+</html>
