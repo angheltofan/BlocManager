@@ -160,3 +160,5 @@ form.in-linie { display: inline; margin: 0; }
 .mic { font-size: 0.85rem; }
 .estompat { color: var(--estompat); }
 .legaturi form.in-linie { margin-left: 12px; }
+/* paginile cu formular (Create/Edit): coloana ingusta, centrata in pagina */
+main.continut:has(> form.formular) { max-width: 592px; }

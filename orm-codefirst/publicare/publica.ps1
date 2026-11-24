@@ -54,17 +54,29 @@ Pas "2. Configurarea pentru productie (fisierele .env)" {
 }
 
 Set-Location $aplicatie
-Pas "3. Instalarea pachetelor in folderul publicat (npm ci)" { npm ci --no-audit --no-fund }
+# pm2 este rulat direct cu node (nu prin pm2.cmd): pm2.cmd nu functioneaza din Windows PowerShell
+# cand calea profilului contine spatii sau & (de exemplu C:\Users\Nume&Prenume).
+$node = (Get-Command node -ErrorAction Stop).Source
+$pm2Js = Join-Path ((npm root -g) | Select-Object -Last 1).Trim() "pm2\bin\pm2"
+function pm2 { & $node $pm2Js @args }
+
+# Aplicatiile publicate se opresc INAINTE de npm ci: pe Windows, fisierele din node_modules folosite de procesele
+# pornite nu pot fi sterse, iar npm ci s-ar opri la jumatate, lasand node_modules gol.
+if (Test-Path $pm2Js) {
+    Pas "3a. Oprirea aplicatiilor publicate (pm2 delete)" {
+        pm2 delete blockmanager-mvc 2>&1 | Out-Null
+        pm2 delete blockmanager-api 2>&1 | Out-Null
+        $global:LASTEXITCODE = 0
+        Start-Sleep -Seconds 2
+    }
+}
+Pas "3b. Instalarea pachetelor in folderul publicat (npm ci)" { npm ci --no-audit --no-fund }
 Pas "4. Migrarile aplicate pe baza de date (prisma migrate deploy)" { npm run migrate:deploy }
 
 # ---------------------------------------------------------------
 # 5. Aplicatiile Node pornite in fundal cu pm2 (fara VS Code si fara terminal deschis)
 # ---------------------------------------------------------------
-# pm2 este rulat direct cu node (nu prin pm2.cmd): pm2.cmd nu functioneaza din Windows PowerShell
-# cand calea profilului contine spatii (de exemplu C:\Users\Nume Prenume).
-$node = (Get-Command node -ErrorAction Stop).Source
-$pm2Js = Join-Path ((npm root -g) | Select-Object -Last 1).Trim() "pm2\bin\pm2"
-function pm2 { & $node $pm2Js @args }
+
 if (-not (Test-Path $pm2Js)) { Pas "5a. Instalarea pm2 (npm install -g pm2)" { npm install -g pm2 --no-audit --no-fund } }
 if (-not (Test-Path $pm2Js)) { throw "Nu gasesc pm2 la $pm2Js dupa instalare." }
 Write-Host "pm2: $pm2Js"

@@ -1,13 +1,13 @@
-Verificarea publicarii BlockManager - 23.11.2026 15:26
+Verificarea publicarii BlockManager - 24.11.2026 13:07
 http://proiect-mvc-demo.com/abonamente        HTTP 200  
 http://proiect-mvc-demo.com/cupoane           HTTP 200  
 http://proiect-api-demo.com/                  HTTP 200  
 http://proiect-api-demo.com/api/planuri       HTTP 200  
-http://proiect-api-demo.com/cupoane.html      HTTP 200  
+http://proiect-api-demo.com/admin/cupoane.html HTTP 200  
 
 Procesele pm2:
-  blockmanager-mvc   online   pid 928, reporniri 0
-  blockmanager-api   online   pid 10308, reporniri 0
+  blockmanager-mvc   online   pid 16132, reporniri 0
+  blockmanager-api   online   pid 14452, reporniri 0
 
 Site-urile IIS:
   proiect-MVC-demo.com     Started  *:80:proiect-mvc-demo.com
