@@ -1,0 +1,16 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/notificari">← Toate notificările</a></p>
+<h1>Ștergi notificarea?</h1>
+<p class="subtitlu">Ștergerea este <strong>fizică</strong>: rândul este eliminat definitiv din baza de date și nu poate fi restaurat. Plățile, facturile și jurnalul de tokeni nu sunt afectate, pentru că niciun alt tabel nu folosește notificarea.</p>
+<dl class="detalii">
+  <div><dt>Destinatar</dt><dd><%= notificare.destinatar %> (<%= notificare.email %>)</dd></div>
+  <div><dt>Asociație</dt><dd><%= notificare.asociatie %></dd></div>
+  <div><dt>Tip</dt><dd><%= notificare.tip %></dd></div>
+  <div><dt>Data</dt><dd><%= notificare.data %></dd></div>
+  <div><dt>Mesaj</dt><dd><%= notificare.mesaj %></dd></div>
+</dl>
+<form method="post" action="/notificari/delete/<%= notificare.id %>" class="actiuni spatiu-sus">
+  <button type="submit" class="buton pericol-plin">Șterge definitiv</button>
+  <a class="buton" href="/notificari">Renunță</a>
+</form>
+<%- include('../partials/sfarsit') %>

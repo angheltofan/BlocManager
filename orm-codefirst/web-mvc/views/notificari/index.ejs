@@ -1,0 +1,40 @@
+<%- include('../partials/inceput', { titlu }) %>
+<div class="antet-pagina">
+  <div>
+    <h1>Notificări</h1>
+    <p class="subtitlu">Mesajele trimise administratorilor după plăți și suspendări. Ștergerea este fizică: notificarea dispare definitiv.</p>
+  </div>
+  <% if (citite > 0) { %>
+  <form method="post" action="/notificari/delete-citite">
+    <button type="submit" class="buton pericol">Șterge notificările citite (<%= citite %>)</button>
+  </form>
+  <% } %>
+</div>
+<% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+<% if (notificari.length === 0) { %>
+  <p class="gol">Nu există notificări.</p>
+<% } else { %>
+<div class="tabel-container">
+  <table>
+    <thead>
+      <tr><th scope="col">Data</th><th scope="col">Destinatar</th><th scope="col">Tip</th><th scope="col">Mesaj</th><th scope="col">Stare</th><th scope="col"><span class="ascuns">Acțiuni</span></th></tr>
+    </thead>
+    <tbody>
+      <% notificari.forEach(function (n) { %>
+      <tr>
+        <td class="nowrap"><%= n.data %></td>
+        <td><%= n.destinatar %><span class="mic estompat bloc"><%= n.asociatie %></span></td>
+        <td><%= n.tip %></td>
+        <td class="mesaj-notificare"><%= n.mesaj %></td>
+        <td><span class="eticheta <%= n.citita ? 'gri' : 'galben' %>"><%= n.citita ? "Citită" : "Necitită" %></span></td>
+        <td class="legaturi stiva">
+          <% if (!n.citita) { %><form method="post" action="/notificari/citita/<%= n.id %>"><button type="submit" class="legatura-buton">Marchează citită</button></form><% } %>
+          <a class="pericol" href="/notificari/delete/<%= n.id %>">Șterge</a>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+<%- include('../partials/sfarsit') %>

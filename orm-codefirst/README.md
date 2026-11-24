@@ -68,6 +68,8 @@ Colectia Postman: `web-api/BlockManager_API.postman_collection.json`.
 4. `20261111120000_date_asociatii_abonamente`: 4 asociatii, 2 abonamente, o comanda achitata
 5. `20261123120000_stergere_logica_cupoane`: `cupoane_reducere.sters_la`
 6. `20261123120100_date_monetizare`: actiunile taxate, pachetele, administratorii asociatiilor, portofelele si jurnalul
+7. `20261123160000_stergere_logica_pachete`: coloana `pachete_tokeni.sters_la` (Laboratorul 9)
+8. `20261123160100_date_notificari`: notificari de test pentru administratori (Laboratorul 9)
 
 Seed-ul (`npm run db:seed`) adauga planul MAX si cupoanele MAX15, VARA5. Comenzi utile: `npm run typecheck`,
 `npm run migrate:deploy`, `npm run migrate:dev -- --name <nume>` (dupa o modificare in `librarie-modele/prisma/schema`).
@@ -89,3 +91,13 @@ Scriptul copiaza aplicatia in `C:\BlockManager\aplicatie`, o porneste cu pm2, ac
 | http://proiect-api-demo.com | WebAPI, sectiunea de utilizator (`/`) si pagina admin `/admin/cupoane.html` | localhost:3002 |
 
 Numele de host sunt trecute in `C:\Windows\System32\drivers\etc\hosts`. Rezultatul verificarii: `laboratoare\laborator8\verificare_publicare.txt`.
+
+## Stergerea (Laboratorul 9)
+
+| Entitate | Tip | Unde | De ce |
+| --- | --- | --- | --- |
+| `Notificare` | fizica (`DELETE`) | admin: http://localhost:3001/notificari | niciun alt tabel nu o refera; istoricul nu depinde de ea |
+| `PachetTokeni` | logica (`sters_la`) | admin: http://localhost:3001/pachete | e referit de `comenzi_simulate.pachet_id` |
+| `CuponReducere` | logica (`sters_la`) | admin: /cupoane | cupoanele folosite raman in istoric |
+
+Get si GetAll omit entitatile sterse logic; in admin, filtrul „Arata si ... sterse” le afiseaza, cu buton de restaurare.

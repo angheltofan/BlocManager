@@ -1,0 +1,14 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/pachete/<%= pachet.id %>">← Înapoi la pachet</a></p>
+<h1>Ștergi pachetul <%= pachet.denumire %>?</h1>
+<p class="subtitlu">Ștergerea este <strong>logică</strong>: pachetul nu mai apare în listă și nu mai poate fi cumpărat, dar rămâne în baza de date. Id-ul lui este folosit în <%= pachet.numarComenzi %> <%= pachet.numarComenzi === 1 ? "comandă" : "comenzi" %>, care trebuie să arate în continuare ce s-a cumpărat. Îl poți restaura oricând.</p>
+<dl class="detalii">
+  <div><dt>Tokeni extra</dt><dd><%= pachet.tokeni %></dd></div>
+  <div><dt>Preț</dt><dd><%= pachet.pret %> lei</dd></div>
+  <div><dt>Comenzi care îl folosesc</dt><dd><%= pachet.numarComenzi %></dd></div>
+</dl>
+<form method="post" action="/pachete/delete/<%= pachet.id %>" class="actiuni spatiu-sus">
+  <button type="submit" class="buton pericol-plin">Șterge pachetul</button>
+  <a class="buton" href="/pachete/<%= pachet.id %>">Renunță</a>
+</form>
+<%- include('../partials/sfarsit') %>

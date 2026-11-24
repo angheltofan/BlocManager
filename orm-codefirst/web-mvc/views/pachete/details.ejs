@@ -1,0 +1,47 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/pachete">← Toate pachetele</a></p>
+<div class="antet-pagina">
+  <div>
+    <h1><%= pachet.denumire %></h1>
+    <p class="subtitlu"><%- include('../partials/stare', { stare: pachet.stare }) %></p>
+  </div>
+  <div class="actiuni">
+    <% if (pachet.stare === 'STERS') { %>
+      <form method="post" action="/pachete/restore/<%= pachet.id %>"><button type="submit" class="buton principal">Restaurează</button></form>
+    <% } else { %>
+      <a class="buton pericol" href="/pachete/delete/<%= pachet.id %>">Șterge</a>
+    <% } %>
+  </div>
+</div>
+<% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+<dl class="detalii">
+  <div><dt>Tokeni extra</dt><dd><%= pachet.tokeni %></dd></div>
+  <div><dt>Preț</dt><dd><%= pachet.pret %> lei</dd></div>
+  <div><dt>Comenzi care îl folosesc</dt><dd><%= pachet.numarComenzi %></dd></div>
+  <% if (pachet.stersLa) { %><div><dt>Șters (logic) la</dt><dd><%= pachet.stersLa %></dd></div><% } %>
+  <div><dt>Id</dt><dd><%= pachet.id %></dd></div>
+</dl>
+
+<h2 class="titlu-sectiune">Comenzi cu acest pachet</h2>
+<% if (comenzi.length === 0) { %>
+  <p class="gol">Pachetul nu a fost comandat încă.</p>
+<% } else { %>
+<% const COMANDA = { IN_ASTEPTARE: ["În așteptare", "galben"], ACHITATA: ["Achitată", "verde"], ANULATA: ["Anulată", "gri"], EXPIRATA: ["Expirată", "gri"] }; %>
+<div class="tabel-container">
+  <table>
+    <thead><tr><th scope="col">Referință</th><th scope="col">Asociație</th><th scope="col">Emisă</th><th scope="col" class="numar">Sumă</th><th scope="col">Stare</th></tr></thead>
+    <tbody>
+      <% comenzi.forEach(function (c) { %>
+      <tr>
+        <td class="cod"><%= c.referinta %></td>
+        <td><%= c.asociatie %></td>
+        <td><%= c.emisa %></td>
+        <td class="numar"><%= c.suma %> lei</td>
+        <td><span class="eticheta <%= (COMANDA[c.status] || [c.status, 'gri'])[1] %>"><%= (COMANDA[c.status] || [c.status])[0] %></span></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+<%- include('../partials/sfarsit') %>

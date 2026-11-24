@@ -147,7 +147,7 @@ export class ServiciuComenzi {
       const abonament = await tx.abonament.findFirst({ where: { asociatieId, status: StatusAbonament.ACTIV } });
       if (!abonament) throw new EroareBusiness("ABONAMENT_INACTIV", "Pachetele de tokeni se pot cumpăra doar cu un abonament activ.");
       const pachet = await tx.pachetTokeni.findUnique({ where: { id: pachetId } });
-      if (!pachet || !pachet.activ) throw new EroareBusiness("DATE_INVALIDE", "Alege un pachet din listă.", "pachetId");
+      if (!pachet || !pachet.activ || pachet.stersLa) throw new EroareBusiness("DATE_INVALIDE", "Pachetul nu mai este oferit. Alege un pachet din listă.", "pachetId");
       return tx.comandaSimulata.create({
         data: { asociatieId, tip: TipComanda.PACHET, pachetId: pachet.id, suma: pachet.pret, status: StatusComanda.IN_ASTEPTARE, referinta: await urmatorulNumar(tx, "SIM") },
       });

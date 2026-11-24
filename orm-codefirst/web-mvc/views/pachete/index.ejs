@@ -1,0 +1,40 @@
+<%- include('../partials/inceput', { titlu }) %>
+<div class="antet-pagina">
+  <div>
+    <h1>Pachete de tokeni</h1>
+    <p class="subtitlu">Tokeni extra cumpărați prin comandă simulată. Ștergerea este logică: comenzile vechi păstrează pachetul.</p>
+  </div>
+</div>
+<% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+<p class="filtru">
+  <% if (inclusivSterse) { %><a href="/pachete">Ascunde pachetele șterse</a><% } else { %><a href="/pachete?sterse=1">Arată și pachetele șterse</a><% } %>
+</p>
+<% if (pachete.length === 0) { %>
+  <p class="gol">Nu există pachete<%= inclusivSterse ? "" : " nesterse" %>.</p>
+<% } else { %>
+<div class="tabel-container">
+  <table>
+    <thead>
+      <tr><th scope="col">Pachet</th><th scope="col" class="numar">Tokeni</th><th scope="col" class="numar">Preț</th><th scope="col" class="numar">Comenzi</th><th scope="col">Stare</th><th scope="col"><span class="ascuns">Acțiuni</span></th></tr>
+    </thead>
+    <tbody>
+      <% pachete.forEach(function (p) { %>
+      <tr class="<%= p.stare === 'STERS' ? 'rand-sters' : '' %>">
+        <td><a class="cod" href="/pachete/<%= p.id %>"><%= p.denumire %></a></td>
+        <td class="numar"><%= p.tokeni %></td>
+        <td class="numar"><%= p.pret %> lei</td>
+        <td class="numar"><%= p.numarComenzi %></td>
+        <td><%- include('../partials/stare', { stare: p.stare }) %></td>
+        <td class="legaturi">
+          <a href="/pachete/<%= p.id %>">Detalii</a>
+          <% if (p.stare === 'STERS') { %>
+            <form method="post" action="/pachete/restore/<%= p.id %>" class="in-linie"><button type="submit" class="legatura-buton">Restaurează</button></form>
+          <% } else { %><a class="pericol" href="/pachete/delete/<%= p.id %>">Șterge</a><% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+<%- include('../partials/sfarsit') %>

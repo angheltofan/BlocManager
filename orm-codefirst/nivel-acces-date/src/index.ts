@@ -11,3 +11,5 @@ export {
   type AbonamentSuspendat,
 } from "./AbonamenteAccessor.ts";
 export { CupoaneAccessor, CodCuponDuplicat, type CuponCuPlan, type DateCupon } from "./CupoaneAccessor.ts";
+export { PacheteAccessor, type PachetCuComenzi, type PachetCuIstoric } from "./PacheteAccessor.ts";
+export { NotificariAccessor, type NotificareCuDestinatar } from "./NotificariAccessor.ts";

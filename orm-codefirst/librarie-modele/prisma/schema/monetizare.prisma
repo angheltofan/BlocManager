@@ -97,6 +97,7 @@ model PachetTokeni {
   tokeni   Int
   pret     Decimal @db.Decimal(10, 2)
   activ    Boolean @default(true)
+  stersLa  DateTime? @map("sters_la") // stergere logica: pachetul nu mai e oferit, dar comenzile vechi pastreaza legatura
 
   comenzi ComandaSimulata[]
 

@@ -17,6 +17,8 @@ import { inchideContext } from "repository-codefirst";
 import { creeazaContainer, EroareBusiness } from "servicii";
 import { AbonamenteController } from "./controllers/AbonamenteController.ts";
 import { CupoaneController } from "./controllers/CupoaneController.ts";
+import { NotificariController } from "./controllers/NotificariController.ts";
+import { PacheteController } from "./controllers/PacheteController.ts";
 
 const radacina = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const port = Number(process.env.PORT ?? 3001);
@@ -64,6 +66,22 @@ app.post("/abonamente/edit/:id", abonamente.editPost);
 app.get("/abonamente/delete/:id", abonamente.deleteGet);
 app.post("/abonamente/delete/:id", abonamente.deletePost);
 app.get("/abonamente/:id", abonamente.details);
+
+// Laboratorul 9, exercitiul 2: stergere logica (pachetele sunt referite de comenzi_simulate)
+const pachete = new PacheteController(container.cradle);
+app.get("/pachete", pachete.index);
+app.get("/pachete/delete/:id", pachete.deleteGet);
+app.post("/pachete/delete/:id", pachete.deletePost);
+app.post("/pachete/restore/:id", pachete.restorePost);
+app.get("/pachete/:id", pachete.details);
+
+// Laboratorul 9, exercitiul 1: stergere fizica (notificarile nu sunt referite de alte tabele)
+const notificari = new NotificariController(container.cradle);
+app.get("/notificari", notificari.index);
+app.post("/notificari/citita/:id", notificari.marcheazaCitita);
+app.post("/notificari/delete-citite", notificari.deleteCititePost);
+app.get("/notificari/delete/:id", notificari.deleteGet);
+app.post("/notificari/delete/:id", notificari.deletePost);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).render("eroare", { titlu: "Pagină inexistentă", mesaj: "Adresa cerută nu există." });

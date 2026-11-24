@@ -64,9 +64,9 @@ Aplicația web rămâne Schema First: modificările ei de bază de date se fac p
 Straturile (npm workspaces), de jos în sus:
 - `librarie-modele/`: entitățile (schema Prisma împărțită pe domenii, în `prisma/schema/*.prisma`) și clientul generat (`src/generated/prisma`, nu se editează).
 - `repository-codefirst/`: `BlockManagerContext` (derivat din `PrismaClient`, cu contor de interogări și `INCARCARE_RELATII`), `prisma.config.ts`, migrările și `prisma/seed.ts` (planuri și cupoane).
-- `nivel-acces-date/`: accesorii (doar acces la date, fără reguli): `PlanuriAccessor`, `CupoaneAccessor` (inclusiv ștergere logică), `AbonamenteAccessor`.
+- `nivel-acces-date/`: accesorii (doar acces la date, fără reguli): `PlanuriAccessor`, `CupoaneAccessor` (inclusiv ștergere logică), `AbonamenteAccessor`, `PacheteAccessor` (ștergere logică, `sters_la`), `NotificariAccessor` (ștergere fizică).
 - `servicii/`: **nivelul Services, unde stă toată logica de business**. Containerul DI (awilix, modul PROXY) e în `src/container.ts`; infrastructura (`Logger` în `logs/blockmanager.log`, `CacheMemorie`, `MagistralaEvenimente`, `EroareBusiness`) în `src/infrastructura`; serviciile în `src/servicii`; consumatorii de evenimente în `src/evenimente`.
-- `web-mvc/`: secțiunea de admin (Express + EJS, port 3001, `npm run admin`). CRUD complet pe cupoane (ștergere logică + restaurare) și abonamente (Details, Edit, anulare = ștergere logică), plus butonul „Rulează jobul zilnic”. Controllerele primesc serviciile din container.
+- `web-mvc/`: secțiunea de admin (Express + EJS, port 3001, `npm run admin`). CRUD complet pe cupoane (ștergere logică + restaurare) și abonamente (Details, Edit, anulare = ștergere logică), pachete de tokeni (ștergere logică + restaurare) și notificări (ștergere fizică), plus butonul „Rulează jobul zilnic”. Controllerele primesc serviciile din container.
 - `web-api/`: API-ul REST + secțiunea de utilizator (port 3002, `npm run api`). `public/` conține pagina „Abonamentul meu” (HTML + JS fără framework), care folosește doar endpoint-urile `/api/...`. `CupoaneController` (Lab 7) folosește DTO-uri + AutoMapper; `MonetizareController` expune planurile, starea asociației, alegerea planului, plata, pachetele și acțiunile.
 - `test-console-codefirst/`: consola din Laboratorul 4.
 
@@ -74,7 +74,8 @@ Reguli de lucru:
 - Controllerele (MVC și API) nu conțin reguli și nu folosesc accesorii direct: apelează serviciile. O regulă nouă se pune într-un serviciu.
 - Erorile de business sunt `EroareBusiness(cod, mesaj, camp?)`; codul dă statusul HTTP (NEGASIT 404, DATE_INVALIDE 400, CONFLICT 409, ABONAMENT_INACTIV 403, PLAN_NEPERMIS 403, SOLD_INSUFICIENT 402). MVC le afișează în formular sau în `eroare.ejs`, API-ul le întoarce ca JSON.
 - Evenimentele se publică după tranzacție (`magistralaEvenimente.publica`), iar consumatorii rulează asincron și izolat. `PlataEfectuata` are 3 consumatori: factură, notificare, audit (`logs/audit-plati.log`).
-- Fiecare proces (admin, API) are containerul lui, deci și cache-ul lui; nu există încă editare de planuri, deci cache-ul de 10 minute nu are nevoie de invalidare între procese.
+- Fiecare proces (admin, API) are containerul lui, deci și cache-ul lui; nu există încă editare de planuri, deci cache-ul de 10 minute nu are nevoie de invalidare între procese. Pachetele pot fi șterse din admin, de aceea cache-ul lor din API ține doar 30 de secunde.
+- Ștergerea: fizică doar pentru entitățile pe care nu le referă nicio cheie străină și care nu țin istoric (notificări); logică (`sters_la`, filtrată în Get/GetAll) pentru cele referite (cupoane, pachete); abonamentele se anulează (status `ANULAT`).
 - Instalare: `orm-codefirst\instalare.ps1`; pornire: `orm-codefirst\porneste.ps1`; publicare pe IIS (Lab 8): `orm-codefirst\publicare\publica.ps1`, rulat ca Administrator. Verificare înainte de livrare: `npm run typecheck` din `orm-codefirst`.
 
 Setarea `INCARCARE_RELATII` din `.env` (`eager` sau `lazy`) alege cum se încarcă relația Plan → CuponReducere. O modificare de model se face în `librarie-modele/prisma/schema`, apoi `npm run migrate:dev -- --name <nume>` din `orm-codefirst`.
@@ -185,6 +186,7 @@ Toată logica de tokeni și abonament stă în `orm-codefirst/servicii` (regulil
 - Laboratorul 6: abonamente în `web-mvc` (Index, Create): crearea abonamentului emite comanda simulată și aplică cuponul;
 - Laboratorul 7: API-ul `orm-codefirst/web-api` pentru cupoane (Get, Get(id), Post, Put), cu DTO-uri și AutoMapper;
 - Laboratorul 8: pagina de administrare `web-api/public/admin/cupoane.html` (CRUD complet prin API, inclusiv DELETE și restaurare; legată din meniul admin, nu din secțiunea de utilizator) și publicarea pe IIS: copia din `C:\BlockManager\aplicatie` rulează cu pm2 (`publicare/ecosystem.config.cjs`), iar IIS (URL Rewrite + ARR, `publicare/iis/*/web.config`) o servește pe `http://proiect-mvc-demo.com` (MVC) și `http://proiect-api-demo.com` (API), nume trecute în fișierul hosts. `GET /api/config` dă pagina de utilizator adresa admin-ului (`ADRESA_ADMIN`);
+- Laboratorul 9: ștergere fizică pentru `Notificare` (`/notificari` în admin) și ștergere logică pentru `PachetTokeni` (`/pachete`, coloana `pachete_tokeni.sters_la`, migrările `20261123160000` și `20261123160100`); livrabil în `laboratoare/laborator9`;
 - Proiectul final, în `orm-codefirst`: nivelul Services (plată simulată, alocare și debitare tokeni, upgrade/downgrade, pachete, cupoane, job zilnic), DI, cache, loguri, ștergere logică, evenimente cu 3 consumatori, admin CRUD complet, secțiunea de utilizator prin API, documentația finală (`laboratoare/proiect`).
 
 **Posibile extinderi (nu sunt cerute de grilă):**

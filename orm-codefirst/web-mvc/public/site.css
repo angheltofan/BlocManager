@@ -150,3 +150,13 @@ dd .info { display: block; }
 @media (max-width: 760px) { .grila-doua { grid-template-columns: 1fr; } }
 .nume { min-width: 190px; }
 .legaturi.stiva a { display: block; margin: 0 0 2px; }
+/* Laboratorul 9: pachete si notificari */
+.legatura-buton { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+form.in-linie { display: inline; margin: 0; }
+.legaturi.stiva form { margin: 0; }
+.nowrap { white-space: nowrap; }
+.mesaj-notificare { max-width: 420px; }
+.bloc { display: block; }
+.mic { font-size: 0.85rem; }
+.estompat { color: var(--estompat); }
+.legaturi form.in-linie { margin-left: 12px; }
