@@ -1,89 +1,83 @@
 # BlockManager
 
-Platformă SaaS cu abonament pentru administrarea asociațiilor de proprietari. Planurile Free, Pro și Max se plătesc lunar (plată simulată), iar acțiunile importante consumă tokeni care se reînnoiesc la fiecare perioadă.
+Platformă SaaS cu abonament pentru administrarea asociațiilor de proprietari. Nucleul aplicației este **mecanismul de monetizare**: planurile Free, Pro și Max se plătesc lunar (plată simulată), iar acțiunile importante consumă tokeni care se reînnoiesc la fiecare perioadă.
 
-Acest proiect conține baza de date (Laborator 2) și o aplicație de test care se conectează la ea și afișează date din tabele.
+Proiect realizat la disciplina *Proiectarea aplicațiilor web* (PPAW) · Anghel Tofan.
 
-## Tehnologii
+## Unde este aplicația finală
 
-- Next.js 16 (React 19, TypeScript, Tailwind CSS)
-- PostgreSQL 16
-- Prisma ORM 7 cu adaptorul `@prisma/adapter-pg`
+**Aplicația evaluată este soluția [`orm-codefirst`](orm-codefirst/)**. Este organizată pe straturi, ca o soluție .NET cu mai multe proiecte (aici, npm workspaces):
 
-## Pornire
-
-Ai nevoie de Node.js 20.19+ (recomandat 22 LTS) și PostgreSQL 16.
-
-1. Instalează pachetele (generează și clientul Prisma):
-
-   ```bash
-   npm install
-   ```
-
-2. Creează baza de date goală `blockmanager` (din pgAdmin sau din linia de comandă):
-
-   ```bash
-   createdb -h localhost -U postgres blockmanager
-   ```
-
-3. Copiază `.env.example` în `.env` și pune parola ta de PostgreSQL în `DATABASE_URL`:
-
-   ```
-   DATABASE_URL="postgresql://postgres:PAROLA_TA@localhost:5432/blockmanager?schema=public"
-   ```
-
-4. Creează tabelele (aplică migrarea din `prisma/migrations`) și populează-le cu date de test:
-
-   ```bash
-   npm run db:migrate
-   npm run db:seed
-   ```
-
-5. Pornește aplicația și deschide http://localhost:3000:
-
-   ```bash
-   npm run dev
-   ```
-
-Pagina afișează versiunea serverului PostgreSQL, numărul de înregistrări, planurile de abonament, situația fiecărei asociații (plan, stare, tokeni) și ultimele mișcări de tokeni.
-
-## Structura
-
-```
-prisma/
-  schema.prisma          modelul bazei de date (30 de tabele, 15 enumerări)
-  migrations/            migrarea inițială (SQL generat de Prisma)
-  seed.ts                datele de test
-prisma.config.ts         configurarea Prisma (adresa bazei de date, seed)
-src/lib/prisma.ts        clientul Prisma folosit de aplicație
-src/app/page.tsx         pagina de test
-```
-
-## Comenzi utile
-
-| Comandă | Ce face |
+| Proiect | Rol |
 | --- | --- |
-| `npm run db:migrate` | aplică migrările pe baza de date (`prisma migrate deploy`) |
-| `npm run db:seed` | golește tabelele și inserează din nou datele de test |
-| `npm run db:studio` | deschide Prisma Studio, pentru a vedea și edita datele în browser |
-| `npx prisma migrate dev --name <nume>` | creează o migrare nouă după o modificare în `schema.prisma` |
+| `librarie-modele` | entitățile (schema Prisma) și clientul generat |
+| `repository-codefirst` | contextul bazei de date, migrările și seed-ul |
+| `nivel-acces-date` | clasele Accessor (doar acces la date) |
+| `servicii` | **logica de business**: plata simulată, tokeni, upgrade/downgrade, cupoane, job zilnic; DI, cache, loguri, evenimente |
+| `web-mvc` | secțiunea de **administrare** (MVC, Express + EJS), http://localhost:3001 |
+| `web-api` | **API-ul REST** și secțiunea de **utilizator** („Abonamentul meu”), http://localhost:3002 |
 
-## Laborator 3: Database First
+Documentația completă (proiectare, implementare, utilizare): [`laboratoare/proiect/BlockManager_Documentatie.pdf`](laboratoare/proiect/BlockManager_Documentatie.pdf).
 
-Folderul `orm-dbfirst` conține proiectul separat în care modelele sunt generate din baza de date (`prisma db pull`), plus clasele Accessor și o aplicație consolă de test. Detaliile sunt în `orm-dbfirst/README.md`.
+## Pornire rapidă (Windows)
 
-## Laborator 4: Code First
+Ai nevoie de Node.js 20.19+ și PostgreSQL 16+.
 
-Folderul `orm-codefirst` conține proiectul separat în care baza de date `blockmanager_codefirst` este creată din modele, prin migrări. Detaliile sunt în `orm-codefirst/README.md`.
+```powershell
+cd orm-codefirst
+.\instalare.ps1    # pachete, .env, baza de date blockmanager_codefirst, migrari si date de test
+.\porneste.ps1     # porneste admin (3001) si API + pagina utilizator (3002)
+```
 
-Modificările de model din Laboratorul 4 există și în aplicația web, prin migrarea `20261110160100_modificari_planuri_cupoane_facturi`: prețul anual și eticheta „Recomandat” la planuri, procentul zecimal al cupoanelor și tabelul `facturi_simulate`, toate afișate pe pagina `/`.
+- Administrare: http://localhost:3001/abonamente
+- Pagina utilizatorului: http://localhost:3002/
+- API: http://localhost:3002/api/planuri (colecția Postman: `orm-codefirst/web-api/BlockManager_API.postman_collection.json`)
+
+Publicarea pe IIS, cu numele de host `proiect-mvc-demo.com` și `proiect-api-demo.com`, se face cu `orm-codefirst\publicare\publica.ps1`, rulat ca Administrator. Detalii în [`orm-codefirst/README.md`](orm-codefirst/README.md).
+
+## Laboratoarele
+
+Livrabilele fiecărui laborator sunt în folderul [`laboratoare`](laboratoare/).
+
+| Lab | Tema | Unde în cod | Livrabil |
+| --- | --- | --- | --- |
+| 1 | Entități, diagrame UML, structura bazei de date | – | `laboratoare/laborator1` |
+| 2 | Baza de date și aplicația de test | `prisma/`, `src/` (rădăcina) | `laboratoare/laborator2` |
+| 3 | ORM Database First | `orm-dbfirst/` | `laboratoare/laborator3` |
+| 4 | ORM Code First, clase Accessor, eager/lazy loading | `orm-codefirst/` | `laboratoare/laborator4` |
+| 5 | MVC: Index, Details, Create, Edit (cupoane) | `orm-codefirst/web-mvc` | `laboratoare/laborator5` |
+| 6 | MVC complex: entitate cu cheie străină (abonamente) | `orm-codefirst/web-mvc` | `laboratoare/laborator6` |
+| 7 | Web API: Get, Post, Put, DTO-uri, AutoMapper, Postman | `orm-codefirst/web-api` | `laboratoare/laborator7` |
+| 8 | Front-end pentru API și publicare pe IIS | `web-api/public/admin`, `orm-codefirst/publicare` | `laboratoare/laborator8` |
+| 9 | Ștergere fizică (notificări) și logică (pachete) | `orm-codefirst/web-mvc`, `nivel-acces-date` | `laboratoare/laborator9` |
+| Proiect | Services, DI, cache, loguri, evenimente, documentație | `orm-codefirst/servicii` | `laboratoare/proiect` |
+
+## Regulile de monetizare, pe scurt
+
+| Plan | Preț simulat | Tokeni / lună |
+| --- | --- | --- |
+| Free | 0 lei | 50 |
+| Pro | 49 lei / lună | 400 |
+| Max | 149 lei / lună | 2000 |
+
+- Pro și Max sunt **suspendate până la plată**. La finalul perioadei, jobul zilnic emite comanda lunii următoare și suspendă abonamentul.
+- Acțiunile taxate (calcul întreținere 10, recalculare 5, notificări 5, export PDF 2, raport anual 15 tokeni) consumă întâi tokenii planului, apoi pe cei extra, cumpărați în pachete.
+- Fiecare plată simulată emite o factură (TVA 21%), o notificare și o înregistrare de audit, prin evenimentul `PlataEfectuata` cu 3 consumatori.
+- Plata este **doar simulată**: nu există procesator de plăți și nu se colectează date de card.
+
+## Aplicația de test din rădăcină (Laboratorul 2)
+
+Rădăcina repository-ului conține baza de date din Laboratorul 2 (`blockmanager`) și o pagină de test Next.js 16 care afișează date din tabele.
+
+```bash
+npm install
+createdb -h localhost -U postgres blockmanager
+# copiaza .env.example in .env si completeaza parola in DATABASE_URL
+npm run db:migrate
+npm run db:seed
+npm run dev        # http://localhost:3000
+```
 
 ## Date de test
 
-Toate datele sunt fictive. Conturile au parola `parola123`, de exemplu:
-
-| Email | Rol | Asociație |
-| --- | --- | --- |
-| admin@florilor12.test | Administrator | Florilor 12, plan Pro activ |
-| admin@parculverde.test | Administrator | Parcul Verde, plan Free |
-| admin@marasti7.test | Administrator | Mărăști 7, plan Max suspendat până la plată |
+Toate datele sunt fictive, iar conturile au parola `parola123`. În aplicația finală, administratorii asociațiilor sunt de forma `admin.florilor@blockmanager.test`, iar asociațiile de test sunt Florilor 12 (Pro activ), Parcul Verde (Free), Mărăști 7 și Zorilor 3.
