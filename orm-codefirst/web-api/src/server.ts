@@ -12,7 +12,7 @@ import "dotenv/config";
 import express, { type NextFunction, type Request, type Response } from "express";
 import path from "node:path";
 import { inchideContext } from "repository-codefirst";
-import { creeazaContainer, EroareBusiness } from "servicii";
+import { creeazaContainer, EroareBusiness, type Container, type Dependente } from "servicii";
 import { CupoaneController } from "./controllers/CupoaneController.ts";
 import { MonetizareController } from "./controllers/MonetizareController.ts";
 
@@ -33,7 +33,23 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
-const m = new MonetizareController(container.cradle);
+// Laboratorul 10: un scope DI pentru fiecare cerere HTTP. Controllerul este creat la fiecare cerere, in scope-ul
+// ei, deci primeste serviciile dupa durata de viata aleasa (DURATA_VIATA_SERVICII: singleton, scoped, transient).
+app.use((_req, res, next) => {
+  res.locals.scope = container.createScope();
+  next();
+});
+function controller<C extends object>(Clasa: new (dep: Dependente) => C): C {
+  return new Proxy({} as C, {
+    get: (_t, actiune) => (req: Request, res: Response, next: NextFunction) => {
+      const c = new Clasa((res.locals.scope as Container).cradle) as Record<string | symbol, unknown>;
+      return (c[actiune] as (req: Request, res: Response, next: NextFunction) => unknown)(req, res, next);
+    },
+  });
+}
+
+
+const m = controller(MonetizareController);
 app.get("/api/planuri", m.planuri);
 app.get("/api/pachete", m.pachete);
 app.get("/api/actiuni", m.actiuni);
@@ -46,7 +62,7 @@ app.post("/api/asociatii/:id/actiuni", m.executaActiune);
 app.post("/api/comenzi/:id/plata", m.plateste);
 app.post("/api/comenzi/:id/anulare", m.anuleaza);
 
-const cupoane = new CupoaneController(container.cradle);
+const cupoane = controller(CupoaneController);
 app.get("/api/cupoane", cupoane.get);
 app.get("/api/cupoane/:id", cupoane.getById);
 app.post("/api/cupoane", cupoane.post);

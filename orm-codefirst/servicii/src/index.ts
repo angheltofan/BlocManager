@@ -2,7 +2,9 @@
  * Servicii: nivelul de logica de business al aplicatiei BlockManager.
  * web-mvc (admin) si web-api (utilizator) folosesc doar acest nivel, prin containerul de dependency injection.
  */
-export { creeazaContainer, type Container, type Dependente } from "./container.ts";
+export { citesteDurataViata, creeazaContainer, type Container, type Dependente, type DurataViata } from "./container.ts";
+export type * from "./contracte.ts";
+export { MonitorInstante } from "./infrastructura/MonitorInstante.ts";
 export { EroareBusiness, type CodEroare } from "./infrastructura/EroareBusiness.ts";
 export { Logger } from "./infrastructura/Logger.ts";
 export { CacheMemorie } from "./infrastructura/CacheMemorie.ts";

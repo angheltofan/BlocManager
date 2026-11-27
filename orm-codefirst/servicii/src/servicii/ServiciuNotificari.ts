@@ -1,12 +1,13 @@
 import type { NotificareCuDestinatar, NotificariAccessor } from "nivel-acces-date";
 import { EroareBusiness } from "../infrastructura/EroareBusiness.ts";
 import type { Logger } from "../infrastructura/Logger.ts";
+import type { IServiciuNotificari } from "../contracte.ts";
 
 /**
  * ServiciuNotificari: notificarile trimise administratorilor (create de ConsumatorNotificari),
  * cu stergere fizica (Laboratorul 9): randul dispare din baza de date, fara sa afecteze istoricul.
  */
-export class ServiciuNotificari {
+export class ServiciuNotificari implements IServiciuNotificari {
   private readonly notificari: NotificariAccessor;
   private readonly log: Logger;
 

@@ -3,12 +3,13 @@ import { CodCuponDuplicat, type CupoaneAccessor, type CuponCuPlan, type DateCupo
 import { EroareBusiness } from "../infrastructura/EroareBusiness.ts";
 import type { Logger } from "../infrastructura/Logger.ts";
 import { ziCurenta, type Tx } from "./utilitare.ts";
+import type { IServiciuCupoane } from "../contracte.ts";
 
 /**
  * ServiciuCupoane: administrarea cupoanelor (CRUD, cu stergere logica) si regula de valabilitate
  * a unui cupon la emiterea unei comenzi de abonament.
  */
-export class ServiciuCupoane {
+export class ServiciuCupoane implements IServiciuCupoane {
   private readonly cupoane: CupoaneAccessor;
   private readonly log: Logger;
 

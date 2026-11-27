@@ -2,8 +2,8 @@ import { CodActiune, StatusAbonament, TipTranzactie, type PortofelTokeni, type T
 import type { BlockManagerContext } from "repository-codefirst";
 import { EroareBusiness } from "../infrastructura/EroareBusiness.ts";
 import type { Logger } from "../infrastructura/Logger.ts";
-import type { ServiciuPlanuri } from "./ServiciuPlanuri.ts";
 import type { Tx } from "./utilitare.ts";
+import type { IServiciuPlanuri, IServiciuTokeni } from "../contracte.ts";
 
 export type RezultatDebitare = {
   actiune: string;
@@ -19,12 +19,12 @@ export type RezultatDebitare = {
  * Regula de baza: orice schimbare a soldului scrie un rand in tranzactii_tokeni, in aceeasi tranzactie,
  * astfel incat soldul din portofel = ultimul sold_dupa = suma cantitatilor din jurnal.
  */
-export class ServiciuTokeni {
+export class ServiciuTokeni implements IServiciuTokeni {
   private readonly db: BlockManagerContext;
-  private readonly planuri: ServiciuPlanuri;
+  private readonly planuri: IServiciuPlanuri;
   private readonly log: Logger;
 
-  constructor(dep: { db: BlockManagerContext; serviciuPlanuri: ServiciuPlanuri; logger: Logger }) {
+  constructor(dep: { db: BlockManagerContext; serviciuPlanuri: IServiciuPlanuri; logger: Logger }) {
     this.db = dep.db;
     this.planuri = dep.serviciuPlanuri;
     this.log = dep.logger.pentru("ServiciuTokeni");

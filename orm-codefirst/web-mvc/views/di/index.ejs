@@ -1,0 +1,37 @@
+<%- include('../partials/inceput', { titlu }) %>
+<div class="antet-pagina">
+  <div>
+    <h1>Durata de viață a serviciilor (DI)</h1>
+    <p class="subtitlu">Setarea curentă: <span class="eticheta verde"><%= durataViata.charAt(0).toUpperCase() + durataViata.slice(1) %></span> · se schimbă din <code>.env</code> cu <code>DURATA_VIATA_SERVICII</code> (singleton, scoped sau transient), apoi se repornește aplicația.</p>
+  </div>
+  <div class="actiuni"><a class="buton" href="/di">Reîncarcă (cerere nouă)</a></div>
+</div>
+
+<h2 class="titlu-sectiune">ServiciuCupoane rezolvat din container</h2>
+<p class="subtitlu">Fiecare obiect creat de container primește un număr (#1, #2, …). Același număr înseamnă același obiect.</p>
+<div class="tabel-container">
+  <table>
+    <thead><tr><th scope="col">Unde a fost rezolvat</th><th scope="col" class="numar">Instanța</th></tr></thead>
+    <tbody>
+      <% rezolvari.forEach(function (r) { %>
+      <tr><td><%= r.unde %></td><td class="numar cod">#<%= r.numar %></td></tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<p class="subtitlu spatiu-sus">
+  <% if (durataViata === 'singleton') { %>Singleton: un singur obiect pentru tot procesul. Numărul rămâne același peste tot, și după reîncărcare.<% } %>
+  <% if (durataViata === 'scoped') { %>Scoped: un obiect pentru fiecare cerere HTTP. În cererea curentă numărul e același; alt scope și fiecare reîncărcare primesc un obiect nou.<% } %>
+  <% if (durataViata === 'transient') { %>Transient: un obiect nou la fiecare rezolvare, chiar și în aceeași cerere.<% } %>
+</p>
+
+<h2 class="titlu-sectiune">Instanțe create de la pornirea aplicației</h2>
+<div class="tabel-container">
+  <table>
+    <thead><tr><th scope="col">Clasa</th><th scope="col" class="numar">Instanțe</th></tr></thead>
+    <tbody>
+      <% totaluri.forEach(function (t) { %><tr><td class="cod"><%= t.clasa %></td><td class="numar"><%= t.instante %></td></tr><% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/sfarsit') %>

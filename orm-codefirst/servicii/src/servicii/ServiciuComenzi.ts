@@ -2,9 +2,8 @@ import { StatusAbonament, StatusComanda, TipComanda, type Abonament, type Comand
 import type { BlockManagerContext } from "repository-codefirst";
 import { EroareBusiness } from "../infrastructura/EroareBusiness.ts";
 import type { Logger } from "../infrastructura/Logger.ts";
-import type { ServiciuCupoane } from "./ServiciuCupoane.ts";
-import type { ServiciuTokeni } from "./ServiciuTokeni.ts";
 import { cuReducere, plusOLuna, urmatorulNumar, ziCurenta, type Tx } from "./utilitare.ts";
+import type { IServiciuComenzi, IServiciuCupoane, IServiciuTokeni } from "../contracte.ts";
 
 export type OptiuniAbonament = {
   codCupon?: string | null;
@@ -24,13 +23,13 @@ const lei = (v: { toFixed(n: number): string }) => v.toFixed(2).replace(".", ","
  * ServiciuComenzi: alegerea unui plan (abonament nou, upgrade, downgrade), cumpararea pachetelor de tokeni
  * si anularea comenzilor. Plata propriu-zisa este in ServiciuPlati.
  */
-export class ServiciuComenzi {
+export class ServiciuComenzi implements IServiciuComenzi {
   private readonly db: BlockManagerContext;
-  private readonly cupoane: ServiciuCupoane;
-  private readonly tokeni: ServiciuTokeni;
+  private readonly cupoane: IServiciuCupoane;
+  private readonly tokeni: IServiciuTokeni;
   private readonly log: Logger;
 
-  constructor(dep: { db: BlockManagerContext; serviciuCupoane: ServiciuCupoane; serviciuTokeni: ServiciuTokeni; logger: Logger }) {
+  constructor(dep: { db: BlockManagerContext; serviciuCupoane: IServiciuCupoane; serviciuTokeni: IServiciuTokeni; logger: Logger }) {
     this.db = dep.db;
     this.cupoane = dep.serviciuCupoane;
     this.tokeni = dep.serviciuTokeni;

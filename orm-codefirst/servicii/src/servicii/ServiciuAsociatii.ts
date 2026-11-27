@@ -2,6 +2,7 @@ import type { Asociatie } from "librarie-modele";
 import { CuiDuplicat, type AsociatieCuAbonament, type AsociatiiAccessor } from "nivel-acces-date";
 import { EroareBusiness } from "../infrastructura/EroareBusiness.ts";
 import type { Logger } from "../infrastructura/Logger.ts";
+import type { IServiciuAsociatii } from "../contracte.ts";
 
 export type FormularAsociatie = { denumire: string; cui: string; adresa: string; iban: string; banca: string };
 
@@ -9,7 +10,7 @@ export type FormularAsociatie = { denumire: string; cui: string; adresa: string;
  * ServiciuAsociatii: asociatiile clientilor (Index + Create in admin).
  * O asociatie noua primeste un portofel de tokeni gol; abonamentul se creeaza apoi din "Abonament nou".
  */
-export class ServiciuAsociatii {
+export class ServiciuAsociatii implements IServiciuAsociatii {
   private readonly asociatii: AsociatiiAccessor;
   private readonly log: Logger;
 

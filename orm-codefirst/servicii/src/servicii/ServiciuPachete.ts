@@ -3,12 +3,13 @@ import type { PachetCuComenzi, PachetCuIstoric, PacheteAccessor } from "nivel-ac
 import type { CacheMemorie } from "../infrastructura/CacheMemorie.ts";
 import { EroareBusiness } from "../infrastructura/EroareBusiness.ts";
 import type { Logger } from "../infrastructura/Logger.ts";
+import type { IServiciuPachete } from "../contracte.ts";
 
 /**
  * ServiciuPachete: administrarea pachetelor de tokeni, cu stergere logica (Laboratorul 9).
  * Un pachet sters nu mai este oferit si nu mai poate fi cumparat, dar comenzile vechi il pastreaza.
  */
-export class ServiciuPachete {
+export class ServiciuPachete implements IServiciuPachete {
   private readonly pachete: PacheteAccessor;
   private readonly cache: CacheMemorie;
   private readonly log: Logger;

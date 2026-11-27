@@ -3,8 +3,8 @@ import type { AbonamenteAccessor } from "nivel-acces-date";
 import type { BlockManagerContext } from "repository-codefirst";
 import { EroareBusiness } from "../infrastructura/EroareBusiness.ts";
 import type { Logger } from "../infrastructura/Logger.ts";
-import type { OptiuniAbonament, RezultatAlegerePlan, ServiciuComenzi } from "./ServiciuComenzi.ts";
-import type { ServiciuTokeni } from "./ServiciuTokeni.ts";
+import type { OptiuniAbonament, RezultatAlegerePlan } from "./ServiciuComenzi.ts";
+import type { IServiciuAbonamente, IServiciuComenzi, IServiciuTokeni } from "../contracte.ts";
 
 export type DateModificareAbonament = {
   reinnoireAutomata: boolean;
@@ -18,18 +18,18 @@ const CURENTE: StatusAbonament[] = [StatusAbonament.ACTIV, StatusAbonament.SUSPE
  * ServiciuAbonamente: administrarea abonamentelor (sectiunea de admin) si starea completa a unei asociatii
  * (sectiunea de utilizator): abonamentul curent, portofelul, comenzile in asteptare, jurnalul si facturile.
  */
-export class ServiciuAbonamente {
+export class ServiciuAbonamente implements IServiciuAbonamente {
   private readonly db: BlockManagerContext;
   private readonly accessor: AbonamenteAccessor;
-  private readonly comenzi: ServiciuComenzi;
-  private readonly tokeni: ServiciuTokeni;
+  private readonly comenzi: IServiciuComenzi;
+  private readonly tokeni: IServiciuTokeni;
   private readonly log: Logger;
 
   constructor(dep: {
     db: BlockManagerContext;
     abonamenteAccessor: AbonamenteAccessor;
-    serviciuComenzi: ServiciuComenzi;
-    serviciuTokeni: ServiciuTokeni;
+    serviciuComenzi: IServiciuComenzi;
+    serviciuTokeni: IServiciuTokeni;
     logger: Logger;
   }) {
     this.db = dep.db;

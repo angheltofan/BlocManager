@@ -3,8 +3,8 @@ import type { BlockManagerContext } from "repository-codefirst";
 import { EroareBusiness } from "../infrastructura/EroareBusiness.ts";
 import type { Logger } from "../infrastructura/Logger.ts";
 import type { Evenimente, MagistralaEvenimente } from "../infrastructura/MagistralaEvenimente.ts";
-import type { ServiciuTokeni } from "./ServiciuTokeni.ts";
 import { plusOLuna, ziCurenta } from "./utilitare.ts";
+import type { IServiciuPlati, IServiciuTokeni } from "../contracte.ts";
 
 /**
  * ServiciuPlati: plata simulata a unei comenzi (nu exista procesator de plati; butonul "Plateste" o marcheaza achitata).
@@ -16,13 +16,13 @@ import { plusOLuna, ziCurenta } from "./utilitare.ts";
  * - pachet: tokenii pachetului se adauga la tokenii extra.
  * Dupa tranzactie se publica evenimentul PlataEfectuata (factura, notificarea si auditul il trateaza separat).
  */
-export class ServiciuPlati {
+export class ServiciuPlati implements IServiciuPlati {
   private readonly db: BlockManagerContext;
-  private readonly tokeni: ServiciuTokeni;
+  private readonly tokeni: IServiciuTokeni;
   private readonly evenimente: MagistralaEvenimente;
   private readonly log: Logger;
 
-  constructor(dep: { db: BlockManagerContext; serviciuTokeni: ServiciuTokeni; magistralaEvenimente: MagistralaEvenimente; logger: Logger }) {
+  constructor(dep: { db: BlockManagerContext; serviciuTokeni: IServiciuTokeni; magistralaEvenimente: MagistralaEvenimente; logger: Logger }) {
     this.db = dep.db;
     this.tokeni = dep.serviciuTokeni;
     this.evenimente = dep.magistralaEvenimente;

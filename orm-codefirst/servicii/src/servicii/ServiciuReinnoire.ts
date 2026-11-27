@@ -2,9 +2,8 @@ import { StatusAbonament, StatusComanda } from "librarie-modele";
 import type { BlockManagerContext } from "repository-codefirst";
 import type { Logger } from "../infrastructura/Logger.ts";
 import type { MagistralaEvenimente } from "../infrastructura/MagistralaEvenimente.ts";
-import type { ServiciuComenzi } from "./ServiciuComenzi.ts";
-import type { ServiciuTokeni } from "./ServiciuTokeni.ts";
 import { plusOLuna, ziCurenta } from "./utilitare.ts";
+import type { IServiciuComenzi, IServiciuReinnoire, IServiciuTokeni } from "../contracte.ts";
 
 export type RezultatReinnoire = { abonamentId: number; asociatie: string; plan: string; actiune: string }[];
 
@@ -16,14 +15,14 @@ export type RezultatReinnoire = { abonamentId: number; asociatie: string; plan: 
  * - planul este platit: tokenii de plan expira, se emite comanda pentru luna urmatoare, abonamentul devine SUSPENDAT.
  * Se ruleaza din sectiunea de admin ("Rulează jobul zilnic") sau periodic, daca este setat JOB_INTERVAL_MINUTE.
  */
-export class ServiciuReinnoire {
+export class ServiciuReinnoire implements IServiciuReinnoire {
   private readonly db: BlockManagerContext;
-  private readonly tokeni: ServiciuTokeni;
-  private readonly comenzi: ServiciuComenzi;
+  private readonly tokeni: IServiciuTokeni;
+  private readonly comenzi: IServiciuComenzi;
   private readonly evenimente: MagistralaEvenimente;
   private readonly log: Logger;
 
-  constructor(dep: { db: BlockManagerContext; serviciuTokeni: ServiciuTokeni; serviciuComenzi: ServiciuComenzi; magistralaEvenimente: MagistralaEvenimente; logger: Logger }) {
+  constructor(dep: { db: BlockManagerContext; serviciuTokeni: IServiciuTokeni; serviciuComenzi: IServiciuComenzi; magistralaEvenimente: MagistralaEvenimente; logger: Logger }) {
     this.db = dep.db;
     this.tokeni = dep.serviciuTokeni;
     this.comenzi = dep.serviciuComenzi;
