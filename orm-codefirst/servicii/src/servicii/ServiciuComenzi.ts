@@ -101,7 +101,16 @@ export class ServiciuComenzi {
       const inAsteptare = await tx.comandaSimulata.findFirst({ where: { abonamentId: curent.id, status: StatusComanda.IN_ASTEPTARE } });
       if (curent.planId === plan.id) {
         if (inAsteptare) throw new EroareBusiness("CONFLICT", `Planul ${plan.denumire} așteaptă plata comenzii ${inAsteptare.referinta}.`, "planId");
-        throw new EroareBusiness("CONFLICT", `Planul ${plan.denumire} este deja activ.`, "planId");
+        if (curent.status === StatusAbonament.ACTIV) throw new EroareBusiness("CONFLICT", `Planul ${plan.denumire} este deja activ.`, "planId");
+        // abonament suspendat fara comanda de platit (de exemplu, comanda a fost anulata): se emite o comanda noua,
+        // altfel asociatia ar ramane blocata; dupa plata, abonamentul redevine ACTIV cu o perioada noua
+        const comanda = await this.emiteComandaAbonament(tx, asociatieId, curent.id, plan, optiuni.codCupon);
+        return {
+          tip: "COMANDA",
+          abonament: curent,
+          comanda,
+          mesaj: `Comanda ${comanda.referinta} (${lei(comanda.suma)} lei) a fost emisă. După plată, planul ${plan.denumire} redevine activ.`,
+        };
       }
 
       if (curent.status === StatusAbonament.SUSPENDAT && plan.pretLunar.isZero()) {

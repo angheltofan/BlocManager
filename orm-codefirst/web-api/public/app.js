@@ -58,7 +58,9 @@ function afiseazaAbonament() {
     if (a.planUrmator) prog.textContent = `De la ${zi(a.sfarsitPerioada)} treci pe planul ${a.planUrmator.denumire}.`;
     if (a.status === "SUSPENDAT") {
       anunt.hidden = false;
-      anunt.textContent = `Abonamentul ${a.planDenumire} este suspendat: acțiunile sunt blocate până la plata comenzii de mai jos.`;
+      anunt.textContent = stare.date.comenziInAsteptare.length
+        ? `Abonamentul ${a.planDenumire} este suspendat: acțiunile sunt blocate până la plata comenzii de mai jos.`
+        : `Abonamentul ${a.planDenumire} este suspendat și nu are nicio comandă de plătit. Apasă „Reactivează ${a.planDenumire}” ca să emiți comanda, apoi plătește-o.`;
     }
   }
   $("sold").textContent = p.sold;
@@ -99,7 +101,9 @@ function afiseazaPlanuri() {
           : `<p class="pret">${lei(p.pretLunar)} <span>/ lună</span></p>`;
       const anual = p.pretAnual ? `<p class="estompat mic">sau ${lei(p.pretAnual)} / an</p>` : `<p class="estompat mic">&nbsp;</p>`;
       let buton;
-      if (esteCurent) buton = `<button class="buton" disabled>Planul tău</button>`;
+      if (esteCurent && curent.status === "SUSPENDAT" && stare.date.comenziInAsteptare.length === 0)
+        buton = `<button class="buton principal" data-plan="${p.cod}">Reactivează ${esc(p.denumire)}</button>`;
+      else if (esteCurent) buton = `<button class="buton" disabled>Planul tău</button>`;
       else if (curent && Number(p.pretLunar) < Number(curent.pretLunar) && curent.status === "ACTIV") buton = `<button class="buton" data-plan="${p.cod}">Programează ${esc(p.denumire)}</button>`;
       else buton = `<button class="buton ${p.recomandat ? "principal" : ""}" data-plan="${p.cod}">${curent ? "Treci pe" : "Alege"} ${esc(p.denumire)}</button>`;
       return `<article class="plan ${p.recomandat ? "recomandat" : ""} ${esteCurent ? "curent" : ""}">
