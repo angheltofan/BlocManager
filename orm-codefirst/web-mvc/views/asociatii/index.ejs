@@ -1,0 +1,32 @@
+<%- include('../partials/inceput', { titlu }) %>
+<div class="antet-pagina">
+  <div>
+    <h1>Asociații</h1>
+    <p class="subtitlu">Clienții aplicației. O asociație are cel mult un abonament curent (activ sau suspendat).</p>
+  </div>
+  <div class="actiuni"><a class="buton principal" href="/asociatii/create">Asociație nouă</a></div>
+</div>
+<% if (mesaj) { %><p class="alerta verde" role="status"><%= mesaj %></p><% } %>
+<div class="tabel-container">
+  <table>
+    <thead><tr><th scope="col">Asociație</th><th scope="col">CUI</th><th scope="col">Abonament curent</th><th scope="col"><span class="ascuns">Acțiuni</span></th></tr></thead>
+    <tbody>
+      <% asociatii.forEach(function (a) { %>
+      <tr class="<%= a.id === nou ? 'rand-nou' : '' %>">
+        <td><span class="nume"><%= a.denumire %></span><span class="mic estompat bloc"><%= a.adresa %></span></td>
+        <td class="cod"><%= a.cui %></td>
+        <td>
+          <% if (a.abonament) { %>
+            <%= a.abonament.plan %> <%- include('../partials/stare', { stare: a.abonament.status }) %>
+          <% } else { %><span class="estompat">fără abonament</span><% } %>
+        </td>
+        <td class="legaturi">
+          <% if (a.abonament) { %><a href="/abonamente/<%= a.abonament.id %>">Abonamentul</a>
+          <% } else { %><a href="/abonamente/create?asociatieId=<%= a.id %>">Creează abonament</a><% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/sfarsit') %>

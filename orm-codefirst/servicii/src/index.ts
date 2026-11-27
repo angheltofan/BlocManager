@@ -11,3 +11,4 @@ export type { DateModificareAbonament } from "./servicii/ServiciuAbonamente.ts";
 export type { OptiuniAbonament, RezultatAlegerePlan } from "./servicii/ServiciuComenzi.ts";
 export type { RezultatDebitare } from "./servicii/ServiciuTokeni.ts";
 export type { RezultatReinnoire } from "./servicii/ServiciuReinnoire.ts";
+export type { FormularAsociatie } from "./servicii/ServiciuAsociatii.ts";

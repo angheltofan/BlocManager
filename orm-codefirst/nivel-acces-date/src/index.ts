@@ -13,3 +13,4 @@ export {
 export { CupoaneAccessor, CodCuponDuplicat, type CuponCuPlan, type DateCupon } from "./CupoaneAccessor.ts";
 export { PacheteAccessor, type PachetCuComenzi, type PachetCuIstoric } from "./PacheteAccessor.ts";
 export { NotificariAccessor, type NotificareCuDestinatar } from "./NotificariAccessor.ts";
+export { AsociatiiAccessor, CuiDuplicat, type AsociatieCuAbonament, type DateAsociatie } from "./AsociatiiAccessor.ts";

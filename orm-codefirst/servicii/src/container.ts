@@ -7,7 +7,7 @@
  * nu le creeaza singure.
  */
 import { asClass, asFunction, asValue, createContainer, InjectionMode, Lifetime, type AwilixContainer } from "awilix";
-import { AbonamenteAccessor, CupoaneAccessor, NotificariAccessor, PacheteAccessor, PlanuriAccessor } from "nivel-acces-date";
+import { AbonamenteAccessor, AsociatiiAccessor, CupoaneAccessor, NotificariAccessor, PacheteAccessor, PlanuriAccessor } from "nivel-acces-date";
 import { getContext, type BlockManagerContext } from "repository-codefirst";
 import { ConsumatorAudit } from "./evenimente/ConsumatorAudit.ts";
 import { ConsumatorFacturi } from "./evenimente/ConsumatorFacturi.ts";
@@ -17,6 +17,7 @@ import { Logger } from "./infrastructura/Logger.ts";
 import { MagistralaEvenimente } from "./infrastructura/MagistralaEvenimente.ts";
 import { ServiciuAbonamente } from "./servicii/ServiciuAbonamente.ts";
 import { ServiciuComenzi } from "./servicii/ServiciuComenzi.ts";
+import { ServiciuAsociatii } from "./servicii/ServiciuAsociatii.ts";
 import { ServiciuCupoane } from "./servicii/ServiciuCupoane.ts";
 import { ServiciuNotificari } from "./servicii/ServiciuNotificari.ts";
 import { ServiciuPachete } from "./servicii/ServiciuPachete.ts";
@@ -34,10 +35,12 @@ export type Dependente = {
   cupoaneAccessor: CupoaneAccessor;
   abonamenteAccessor: AbonamenteAccessor;
   pacheteAccessor: PacheteAccessor;
+  asociatiiAccessor: AsociatiiAccessor;
   notificariAccessor: NotificariAccessor;
   serviciuPlanuri: ServiciuPlanuri;
   serviciuCupoane: ServiciuCupoane;
   serviciuPachete: ServiciuPachete;
+  serviciuAsociatii: ServiciuAsociatii;
   serviciuNotificari: ServiciuNotificari;
   serviciuTokeni: ServiciuTokeni;
   serviciuComenzi: ServiciuComenzi;
@@ -67,11 +70,13 @@ export function creeazaContainer(sursa: string): Container {
     cupoaneAccessor: asFunction(({ db }: Dependente) => new CupoaneAccessor(db), singleton),
     abonamenteAccessor: asFunction(({ db }: Dependente) => new AbonamenteAccessor(db), singleton),
     pacheteAccessor: asFunction(({ db }: Dependente) => new PacheteAccessor(db), singleton),
+    asociatiiAccessor: asFunction(({ db }: Dependente) => new AsociatiiAccessor(db), singleton),
     notificariAccessor: asFunction(({ db }: Dependente) => new NotificariAccessor(db), singleton),
     // nivelul de servicii
     serviciuPlanuri: asClass(ServiciuPlanuri, singleton),
     serviciuCupoane: asClass(ServiciuCupoane, singleton),
     serviciuPachete: asClass(ServiciuPachete, singleton),
+    serviciuAsociatii: asClass(ServiciuAsociatii, singleton),
     serviciuNotificari: asClass(ServiciuNotificari, singleton),
     serviciuTokeni: asClass(ServiciuTokeni, singleton),
     serviciuComenzi: asClass(ServiciuComenzi, singleton),

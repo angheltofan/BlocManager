@@ -8,7 +8,7 @@
 <% } %>
 
 <% if (optiuniAsociatie.length === 0) { %>
-  <p class="gol">Toate asociațiile au deja un abonament activ sau suspendat. <a href="/abonamente">Înapoi la abonamente</a>.</p>
+  <p class="gol">Toate asociațiile au deja un abonament activ sau suspendat (o asociație are cel mult unul). <a href="/asociatii/create">Adaugă o asociație nouă</a> sau anulează abonamentul unei asociații existente.</p>
 <% } else { %>
 <form method="post" action="/abonamente/create" class="formular" novalidate>
   <div class="camp <%= erori.asociatieId ? 'cu-eroare' : '' %>">

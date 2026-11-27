@@ -1,0 +1,26 @@
+<%- include('../partials/inceput', { titlu }) %>
+<p class="inapoi"><a href="/asociatii">← Toate asociațiile</a></p>
+<h1>Asociație nouă</h1>
+<p class="subtitlu">După salvare, asociația primește un portofel de tokeni gol și îi poți crea un abonament.</p>
+<% if (erori.general) { %><p class="alerta rosu" role="alert"><%= erori.general %></p><% } %>
+<% if (Object.keys(erori).length > 0 && !erori.general) { %><p class="alerta rosu" role="alert">Asociația nu a fost salvată. Corectează câmpurile marcate.</p><% } %>
+<form method="post" action="/asociatii/create" class="formular" novalidate>
+  <% [
+    ["denumire", "Denumire", "ex. Asociația de Proprietari Lalelelor 5", ""],
+    ["cui", "CUI", "ex. RO40000090", "Cod unic de înregistrare; trebuie să fie unic."],
+    ["adresa", "Adresă", "ex. Str. Lalelelor nr. 5, Cluj-Napoca", ""],
+    ["iban", "IBAN", "ex. RO49AAAA1B31007593840000", "Contul în care proprietarii plătesc întreținerea."],
+    ["banca", "Bancă (opțional)", "ex. Banca Transilvania", ""]
+  ].forEach(function (c) { %>
+  <div class="camp <%= erori[c[0]] ? 'cu-eroare' : '' %>">
+    <label for="<%= c[0] %>"><%= c[1] %></label>
+    <input type="text" id="<%= c[0] %>" name="<%= c[0] %>" value="<%= f[c[0]] %>" placeholder="<%= c[2] %>" autocomplete="off" <%= c[0] === 'banca' ? '' : 'required' %>>
+    <% if (erori[c[0]] || c[3]) { %><p class="info"><%= erori[c[0]] || c[3] %></p><% } %>
+  </div>
+  <% }) %>
+  <div class="actiuni">
+    <button type="submit" class="buton principal">Salvează</button>
+    <a class="buton" href="/asociatii">Renunță</a>
+  </div>
+</form>
+<%- include('../partials/sfarsit') %>

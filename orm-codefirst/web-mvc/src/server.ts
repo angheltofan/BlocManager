@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import { inchideContext } from "repository-codefirst";
 import { creeazaContainer, EroareBusiness } from "servicii";
 import { AbonamenteController } from "./controllers/AbonamenteController.ts";
+import { AsociatiiController } from "./controllers/AsociatiiController.ts";
 import { CupoaneController } from "./controllers/CupoaneController.ts";
 import { NotificariController } from "./controllers/NotificariController.ts";
 import { PacheteController } from "./controllers/PacheteController.ts";
@@ -66,6 +67,12 @@ app.post("/abonamente/edit/:id", abonamente.editPost);
 app.get("/abonamente/delete/:id", abonamente.deleteGet);
 app.post("/abonamente/delete/:id", abonamente.deletePost);
 app.get("/abonamente/:id", abonamente.details);
+
+// Asociatiile (clientii): o asociatie noua poate primi apoi un abonament
+const asociatii = new AsociatiiController(container.cradle);
+app.get("/asociatii", asociatii.index);
+app.get("/asociatii/create", asociatii.createGet);
+app.post("/asociatii/create", asociatii.createPost);
 
 // Laboratorul 9, exercitiul 2: stergere logica (pachetele sunt referite de comenzi_simulate)
 const pachete = new PacheteController(container.cradle);

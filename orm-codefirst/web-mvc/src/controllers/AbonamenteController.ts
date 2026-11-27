@@ -54,8 +54,11 @@ export class AbonamenteController {
     res.render("abonamente/details", { titlu: `Abonament ${a.plan.denumire} · ${a.asociatie.denumire}`, a, mesaj: typeof req.query.mesaj === "string" ? req.query.mesaj : null });
   };
 
-  createGet = async (_req: Request, res: Response) => {
-    await this.afiseazaCreate(res, formularGol(), {});
+  createGet = async (req: Request, res: Response) => {
+    // din pagina Asociatii: asociatia aleasa vine preselectata (?asociatieId=)
+    const formular = formularGol();
+    if (typeof req.query.asociatieId === "string") formular.asociatieId = req.query.asociatieId;
+    await this.afiseazaCreate(res, formular, {});
   };
 
   createPost = async (req: Request, res: Response) => {
