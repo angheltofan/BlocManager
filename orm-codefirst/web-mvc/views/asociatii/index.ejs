@@ -17,7 +17,7 @@
         <td class="cod"><%= a.cui %></td>
         <td>
           <% if (a.abonament) { %>
-            <%= a.abonament.plan %> <%- include('../partials/stare', { stare: a.abonament.status }) %>
+            <%= a.abonament.plan %> <%- include('../abonamente/_stare', { stare: a.abonament.status }) %>
           <% } else { %><span class="estompat">fără abonament</span><% } %>
         </td>
         <td class="legaturi">
